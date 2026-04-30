@@ -46,6 +46,24 @@ dependencies:
     - kazukitcy/skills/claude-code-review
 ```
 
+### Claude Code Rescue
+
+Use local Claude Code from an agent for bounded delegated engineering tasks.
+
+Install with APM:
+
+```sh
+apm install -g kazukitcy/skills/claude-code-rescue
+```
+
+Or add it to a project's `apm.yml`:
+
+```yaml
+dependencies:
+  apm:
+    - kazukitcy/skills/claude-code-rescue
+```
+
 ## Conventions
 
 - Write public documentation in English.
