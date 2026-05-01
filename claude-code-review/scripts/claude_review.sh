@@ -430,8 +430,8 @@ After finding the first plausible issue, also check second-order failures, empty
 <calibration_rules>
 Prefer one strong finding over several weak ones.
 Do not dilute serious issues with filler.
-Use `needs-attention` if there is any material risk worth blocking on.
-Use `approve` only if you cannot support any substantive finding from the provided context.
+Use \`needs-attention\` if there is any material risk worth blocking on.
+Use \`approve\` only if you cannot support any substantive finding from the provided context.
 </calibration_rules>
 
 <final_check>
