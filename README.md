@@ -32,6 +32,7 @@ apm install -g kazukitcy/skills/<skill-name>#v0.1.0
 
 | Skill | Description | Install |
 | --- | --- | --- |
+| [coding-rescue](./coding-rescue) | Perform a tool-neutral bounded engineering rescue task usable by any coding tool. | `apm install -g kazukitcy/skills/coding-rescue` |
 | [coding-review](./coding-review) | Perform a tool-neutral, read-only code review usable by any coding tool. | `apm install -g kazukitcy/skills/coding-review` |
 
 ### Claude Code
