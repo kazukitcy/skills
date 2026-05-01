@@ -35,6 +35,12 @@ apm install -g kazukitcy/skills/<skill-name>#v0.1.0
 | [coding-rescue](./coding-rescue) | Perform a tool-neutral bounded engineering rescue task usable by any coding tool. | `apm install -g kazukitcy/skills/coding-rescue` |
 | [coding-review](./coding-review) | Perform a tool-neutral, read-only code review usable by any coding tool. | `apm install -g kazukitcy/skills/coding-review` |
 
+### Rust
+
+| Skill | Description | Install |
+| --- | --- | --- |
+| [rust-api-guidelines](./rust-api-guidelines) | Review Rust APIs against the Rust API Guidelines, with the full upstream guidelines vendored as references. | `apm install -g kazukitcy/skills/rust-api-guidelines` |
+
 ### Claude Code
 
 | Skill | Description | Install |

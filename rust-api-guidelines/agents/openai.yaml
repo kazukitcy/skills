@@ -1,0 +1,4 @@
+interface:
+  display_name: "Rust API Guidelines"
+  short_description: "Review Rust APIs against guideline criteria"
+  default_prompt: "Use $rust-api-guidelines to review this Rust crate or PR against the Rust API Guidelines checklist."
