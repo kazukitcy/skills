@@ -28,6 +28,12 @@ apm install -g kazukitcy/skills/<skill-name>#v0.1.0
 
 ## Skills
 
+### Coding
+
+| Skill | Description | Install |
+| --- | --- | --- |
+| [coding-review](./coding-review) | Perform a tool-neutral, read-only code review usable by any coding tool. | `apm install -g kazukitcy/skills/coding-review` |
+
 ### Claude Code
 
 | Skill | Description | Install |
