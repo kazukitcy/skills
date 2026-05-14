@@ -5,9 +5,11 @@ Use structured output for file, content, and code-search reads. Use `[HOST/]OWNE
 Code search:
 
 ```sh
-gh search code "functionName repo:owner/repo" --json repository,path,url,textMatches
-gh search code "language:go symbol:Handler org:owner" --json repository,path,url
+gh search code functionName --repo owner/repo --json repository,path,url,textMatches
+gh search code Handler --owner owner --language go --json repository,path,url
 ```
+
+`gh search code` uses GitHub's legacy code search API. Do not assume browser-only code search features such as regex or symbol search are available through this command.
 
 File and directory lookup:
 

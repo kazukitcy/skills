@@ -1,11 +1,11 @@
 ---
 name: github-gh
-description: "Use when the user wants to query or operate GitHub through the local gh CLI: repositories, files, code search, issues, pull requests, reviews, checks, Actions runs, workflows, releases, projects, gists, and gh api fallbacks. Do not use for purely conceptual GitHub explanations, browser-only tasks, or destructive/admin operations unless explicitly requested and safety checks are satisfied."
+description: "Use when the user wants to query or operate GitHub through the local gh CLI: organizations, repositories, files, code search, issues, pull requests, reviews, checks, Actions runs, workflows, releases, projects, gists, and gh api fallbacks. Do not use for purely conceptual GitHub explanations, browser-only tasks, or destructive/admin operations unless explicitly requested and safety checks are satisfied."
 ---
 
 # github-gh
 
-Use this skill to translate a user's GitHub request into safe local `gh` CLI actions. It is not a GitHub MCP Server compatibility layer and does not reimplement MCP tool schemas.
+Translate GitHub requests into safe local `gh` CLI actions.
 
 ## Common Procedure
 
@@ -16,7 +16,7 @@ Use this skill to translate a user's GitHub request into safe local `gh` CLI act
 5. For read operations, prefer structured output: `--json`, `--jq`, or `gh api --jq`.
 6. For write operations, state the target repo, object, payload, and command intent before execution. Use `references/safe-writes.md`.
 7. For destructive/admin operations, follow `references/admin-and-destructive-ops.md` and require explicit user intent.
-8. Never store or print tokens, credentials, secret values, or private auth output in skill files, logs, README files, tests, or evals.
+8. Never store or print tokens, credentials, secret values, or private auth output.
 
 ## Risk Classes
 
@@ -33,13 +33,13 @@ Use this skill to translate a user's GitHub request into safe local `gh` CLI act
 - Issues, issue comments, labels, assignees, and milestones: `references/issues.md`.
 - Pull requests, PR comments, reviews, checks, diffs, and merges: `references/pull-requests.md`.
 - Actions runs, logs, artifacts, workflows, reruns, cancels, and dispatch: `references/actions.md`.
+- Organizations, org repos, members, and teams: `references/orgs.md`.
 - Projects basics and Project v2 GraphQL fallback: `references/projects.md`.
 - Releases: `references/releases.md`.
 - Gists: `references/gists.md`.
 - REST or GraphQL fallback with `gh api`: `references/gh-api.md`.
 - Write summaries and payload handling: `references/safe-writes.md`.
 - Admin/destructive isolation: `references/admin-and-destructive-ops.md`.
-- Migration or gap evaluation versus MCP-like workflows only: `references/mcp-coverage.md`.
 
 ## Completion Criteria
 

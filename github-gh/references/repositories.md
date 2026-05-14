@@ -6,7 +6,7 @@ Repository metadata:
 
 ```sh
 gh repo view owner/repo --json nameWithOwner,description,visibility,defaultBranchRef,url
-gh repo view --repo owner/repo --json nameWithOwner,isArchived,isPrivate,pushedAt
+GH_HOST=ghe.example.com gh repo view owner/repo --json nameWithOwner,isArchived,isPrivate,pushedAt
 gh repo list owner --json nameWithOwner,description,visibility,updatedAt
 ```
 

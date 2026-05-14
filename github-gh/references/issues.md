@@ -14,7 +14,7 @@ Common write commands:
 
 ```sh
 gh issue create --repo owner/repo --title "Title" --body-file body.md --label bug
-gh issue edit 123 --repo owner/repo --add-label triage --assign @me
+gh issue edit 123 --repo owner/repo --add-label triage --add-assignee @me
 gh issue comment 123 --repo owner/repo --body-file comment.md
 gh issue close 123 --repo owner/repo --comment "Closing with context"
 gh issue reopen 123 --repo owner/repo

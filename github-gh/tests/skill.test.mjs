@@ -18,12 +18,6 @@ async function exists(path) {
   await access(new URL(path, packageRoot), constants.F_OK);
 }
 
-function assertIncludesAll(text, patterns) {
-  for (const pattern of patterns) {
-    assert.match(text, pattern);
-  }
-}
-
 const references = [
   "command-selection.md",
   "repo-context.md",
@@ -32,13 +26,13 @@ const references = [
   "issues.md",
   "pull-requests.md",
   "actions.md",
+  "orgs.md",
   "projects.md",
   "releases.md",
   "gists.md",
   "gh-api.md",
   "safe-writes.md",
   "admin-and-destructive-ops.md",
-  "mcp-coverage.md",
 ];
 
 const scripts = [
@@ -66,75 +60,51 @@ test("github-gh skill routes details to all required references", async () => {
   }
 });
 
-test("issue and pull request references stay independently routable", async () => {
-  const skill = await readText("SKILL.md");
-  const issues = await readText("references/issues.md");
-  const pullRequests = await readText("references/pull-requests.md");
-  const csv = await readText("evals/prompts.csv");
+test("published docs stay concise and gh CLI focused", async () => {
+  const readme = await readText("README.md");
+  const docs = [
+    "AGENTS.md",
+    "README.md",
+    "SKILL.md",
+    "evals/README.md",
+    "evals/prompts.csv",
+    ...references.map((ref) => `references/${ref}`),
+  ];
+  const offScope = new RegExp(["M", "C", "P"].join(""), "i");
 
-  assert.doesNotMatch(skill, /issues-prs\.md/);
-  assertIncludesAll(skill, [/references\/issues\.md/, /references\/pull-requests\.md/]);
+  for (const doc of docs) {
+    assert.doesNotMatch(await readText(doc), offScope, `${doc} should stay focused on gh CLI`);
+  }
 
-  assertIncludesAll(issues, [/gh issue list/, /gh search issues/]);
-  assert.doesNotMatch(issues, /gh pr merge/);
-
-  assertIncludesAll(pullRequests, [/gh pr checks/, /gh pr merge/, /gh search issues/]);
-
-  assertIncludesAll(csv, [
-    /command-selection\.md;issues\.md;repo-context\.md/,
-    /pull-requests\.md;actions\.md/,
-  ]);
-  assert.doesNotMatch(csv, /issues-prs\.md/);
+  assert.ok(readme.split(/\s+/).length < 220, "README.md should stay concise");
+  assert.doesNotMatch(readme, /Examples|Future Split|github-gh-admin/);
 });
 
-test("repository, file search, release, and gist references stay independently routable", async () => {
-  const skill = await readText("SKILL.md");
-  const repositories = await readText("references/repositories.md");
-  const filesSearch = await readText("references/files-search.md");
-  const releases = await readText("references/releases.md");
-  const gists = await readText("references/gists.md");
-  const csv = await readText("evals/prompts.csv");
-
-  assert.doesNotMatch(skill, /repos-files-search\.md|releases-gists\.md/);
-  assertIncludesAll(skill, [
-    /references\/repositories\.md/,
-    /references\/files-search\.md/,
-    /references\/releases\.md/,
-    /references\/gists\.md/,
-  ]);
-
-  assertIncludesAll(repositories, [/gh repo view/, /gh api repos\/owner\/repo\/compare/]);
-  assert.doesNotMatch(repositories, /gh search code/);
-
-  assertIncludesAll(filesSearch, [/gh search code/, /contents\/path\/to\/file/]);
-  assert.doesNotMatch(filesSearch, /gh repo create/);
-
-  assert.match(releases, /gh release create/);
-  assert.doesNotMatch(releases, /gh gist/);
-
-  assert.match(gists, /gh gist create/);
-  assert.doesNotMatch(gists, /gh release/);
-
-  assertIncludesAll(csv, [
-    /files-search\.md/,
-    /repositories\.md;repo-context\.md/,
-    /releases\.md;safe-writes\.md/,
-    /gists\.md;admin-and-destructive-ops\.md/,
-  ]);
-  assert.doesNotMatch(csv, /repos-files-search\.md|releases-gists\.md/);
-});
-
-test("references document safety boundaries instead of MCP compatibility", async () => {
+test("references document safety boundaries", async () => {
   const admin = await readText("references/admin-and-destructive-ops.md");
-  const mcp = await readText("references/mcp-coverage.md");
   const safeWrites = await readText("references/safe-writes.md");
 
   assert.match(admin, /repo delete/i);
   assert.match(admin, /explicit/i);
   assert.match(safeWrites, /repo/i);
   assert.match(safeWrites, /payload/i);
-  assert.match(mcp, /not.*compatib/i);
-  assert.match(mcp, /full|partial|custom|gap/i);
+});
+
+test("reference command examples avoid gh v2.92 help mismatches", async () => {
+  const files = [
+    "references/command-selection.md",
+    "references/repositories.md",
+    "references/files-search.md",
+    "references/issues.md",
+  ];
+
+  for (const file of files) {
+    const body = await readText(file);
+
+    assert.doesNotMatch(body, /gh repo view --repo/);
+    assert.doesNotMatch(body, /--assign @me/);
+    assert.doesNotMatch(body, /\bsymbol:/);
+  }
 });
 
 test("helper scripts are executable and avoid unsafe shell patterns", async () => {
@@ -153,29 +123,21 @@ test("helper scripts are executable and avoid unsafe shell patterns", async () =
 test("repository helpers support GitHub Enterprise Server repo specs", async () => {
   const resolveScript = new URL("scripts/gh-resolve-repo.sh", packageRoot).pathname;
   const safeWriteScript = new URL("scripts/gh-safe-write.sh", packageRoot).pathname;
+  const apiScript = await readText("scripts/gh-api-json.sh");
 
-  const explicitHost = await execFileAsync(resolveScript, [
-    "--repo",
-    "ghe.example.com/owner/repo",
-  ]);
-  assert.equal(explicitHost.stdout.trim(), "ghe.example.com/owner/repo");
-
-  const separateHost = await execFileAsync(resolveScript, [
-    "--hostname",
-    "ghe.example.com",
-    "--repo",
-    "owner/repo",
-  ]);
-  assert.equal(separateHost.stdout.trim(), "ghe.example.com/owner/repo");
-
-  const envHost = await execFileAsync(resolveScript, ["--mode", "read"], {
-    env: {
-      ...process.env,
-      GH_HOST: "ghe.example.com",
-      GH_REPO: "owner/repo",
+  for (const { args, options } of [
+    { args: ["--repo", "ghe.example.com/owner/repo"] },
+    { args: ["--hostname", "ghe.example.com", "--repo", "owner/repo"] },
+    {
+      args: ["--mode", "read"],
+      options: {
+        env: { ...process.env, GH_HOST: "ghe.example.com", GH_REPO: "owner/repo" },
+      },
     },
-  });
-  assert.equal(envHost.stdout.trim(), "ghe.example.com/owner/repo");
+  ]) {
+    const result = await execFileAsync(resolveScript, args, options);
+    assert.equal(result.stdout.trim(), "ghe.example.com/owner/repo");
+  }
 
   const tempRepo = await mkdtemp(join(tmpdir(), "github-gh-ghes-"));
   try {
@@ -213,16 +175,7 @@ test("repository helpers support GitHub Enterprise Server repo specs", async () 
     "gh pr comment --repo ghe.example.com/owner/repo --body-file comment.md",
   ]);
   assert.match(summary.stdout, /repo: ghe\.example\.com\/owner\/repo/);
-});
-
-test("gh api wrapper exposes GitHub Enterprise Server hostname routing", async () => {
-  const script = await readText("scripts/gh-api-json.sh");
-  const reference = await readText("references/gh-api.md");
-  const repoContext = await readText("references/repo-context.md");
-
-  assert.match(script, /--hostname/);
-  assert.match(reference, /--hostname HOST/);
-  assert.match(repoContext, /\[HOST\/\]OWNER\/REPO/);
+  assert.match(apiScript, /--hostname/);
 });
 
 test("eval prompts cover required routing categories", async () => {

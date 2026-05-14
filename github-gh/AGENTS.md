@@ -1,6 +1,6 @@
 # github-gh Skill Package Guidelines
 
-This package builds a `gh` CLI Agent Skill, not GitHub MCP Server compatibility.
+This package builds a reusable Agent Skill for choosing and running local `gh` CLI commands safely.
 
 ## Scope
 

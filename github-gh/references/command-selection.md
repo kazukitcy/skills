@@ -6,11 +6,13 @@ Choose the smallest standard `gh` command that matches the user's intent. Use `g
 | --- | --- | --- |
 | Check auth | `gh auth status` | read |
 | Identify repo | `gh repo view --json nameWithOwner` | read |
-| View repo metadata | `gh repo view --repo [HOST/]OWNER/REPO --json ...` | read |
+| View repo metadata | `gh repo view OWNER/REPO --json ...` | read |
 | List repos | `gh repo list OWNER --json ...` | read |
-| Find code | `gh search code "query repo:OWNER/REPO" --json ...` | read |
+| Find code | `gh search code QUERY --repo OWNER/REPO --json ...` | read |
 | Read file contents | `gh api repos/OWNER/REPO/contents/PATH --jq ...` | read |
 | Inspect branches or commits | `gh api repos/OWNER/REPO/branches`, `gh api repos/OWNER/REPO/commits/SHA` | read |
+| List orgs visible to the authenticated user | `gh org list` | read |
+| View org details, repos, members, or teams | `gh api orgs/ORG...` | read |
 | Find issues | `gh issue list`, `gh search issues` | read |
 | Create or edit issue | `gh issue create`, `gh issue edit`, `gh issue close`, `gh issue reopen` | write |
 | View PR state | `gh pr view --json ...` | read |
@@ -27,4 +29,4 @@ Choose the smallest standard `gh` command that matches the user's intent. Use `g
 | Projects basics | `gh project ...` | read/write |
 | Missing standard support | `gh api` or `gh api graphql` | depends |
 
-Route repository delete, archive, rename, deploy keys, secrets, variables, org admin, rulesets, security alerts, Dependabot alerts, secret scanning, and notification state changes to `admin-and-destructive-ops.md`.
+Route repository delete, archive, rename, deploy keys, secrets, variables, org administration, membership changes, team administration, rulesets, security alerts, Dependabot alerts, secret scanning, and notification state changes to `admin-and-destructive-ops.md`.
