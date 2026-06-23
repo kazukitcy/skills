@@ -55,6 +55,7 @@ test(NAME + " carries the contract for its kind", async () => {
   const schemaFields = ["- location:", "- claim:", "- evidence:", "- path:",
     "- impact:", "- fix:", "- test:"];
   assert.ok(skill.includes("severity: P0 | P1 | P2 | P3"));
+  assert.ok(skill.includes("## Calibration"));
 
   if (KIND === "orchestrator") {
     for (const h of ["## Routing rules", "## Final output format",
@@ -72,12 +73,12 @@ test(NAME + " carries the contract for its kind", async () => {
 
   if (KIND === "adversarial") {
     for (const h of ["Finding threshold", "adversarial scenario",
-      "existing protection checked"]) assert.ok(skill.includes(h));
+      "existing protection checked", "## Final check"]) assert.ok(skill.includes(h));
     return;
   }
 
   // ordinary specialist: full shared contract + area-specific no-findings line
-  for (const h of ["## Look for", "## Required evidence", "## Severity", "## Output"])
+  for (const h of ["## Look for", "## Required evidence", "## Severity", "## Output", "## Final check"])
     assert.ok(skill.includes(h));
   for (const p of ["- P0:", "- P1:", "- P2:", "- P3:"]) assert.ok(skill.includes(p));
   assert.ok(skill.includes("confidence high:") && skill.includes("confidence medium:"));

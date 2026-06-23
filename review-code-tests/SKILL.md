@@ -54,6 +54,25 @@ confidence high: code evidence and path are clear; existing protections checked.
 confidence medium: evidence exists but some uncertainty in call path or runtime conditions.
 A low-confidence hypothesis is not a finding: put it under Assumptions checked instead.
 
+## Calibration
+
+Prefer one strong, well-evidenced finding over several weak ones. Do not dilute
+serious findings with filler, restated guards, or speculation. If the change is
+clean for this lens, say so and report no findings rather than padding the list.
+
+## Final check
+
+Before returning, re-read each finding and confirm it is:
+
+- tied to a concrete code location in or near the change,
+- plausible under a real runtime, exploit, regression, or rollout scenario,
+- not already prevented by an existing guard, test, constraint, or framework behavior,
+- actionable, with a fix or test specific enough to act on.
+
+Drop or downgrade any finding that fails a check. After the first issue, also
+check for second-order failures, empty-state and boundary behavior, and follow-on
+effects before finalizing.
+
 ## Output
 
 Return only concrete findings, using this format:

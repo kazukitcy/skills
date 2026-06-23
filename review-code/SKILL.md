@@ -161,6 +161,13 @@ prevented, (6) a human reviewer would plausibly block or request changes. If 1�
 are not all yes, do not make it a final finding. If 5 is no, reject or downgrade. If
 6 is no, demote to P3 or Notes.
 
+## Calibration
+
+Prefer one strong, well-evidenced finding over several weak ones. Do not dilute a
+P0/P1 finding by surrounding it with low-value P3s or restated framework
+guarantees. A short, high-signal review beats a long one: when a lens is clean,
+say so rather than manufacturing findings to fill a section.
+
 ## Verifying important findings
 
 Before finalizing, run a verification pass over the important candidate findings
@@ -180,6 +187,8 @@ For each such candidate, check:
 - Is it duplicated by another finding?
 - Is there a smaller, more precise claim?
 - Is the suggested fix appropriate?
+- Does the finding imply second-order failures — empty-state behavior, retries,
+  stale state, or rollback paths — that a fix must also address?
 
 Classify each verified candidate as one of:
 

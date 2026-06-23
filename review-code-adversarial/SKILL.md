@@ -48,6 +48,27 @@ checked.
 - P2: important but non-blocking.
 - P3: minor suggestion. Report only when unusually high-value.
 
+## Calibration
+
+Default to skepticism. Do not give credit for good intent, partial fixes, or
+likely follow-up work; a change that only works on the happy path is a real
+weakness. Prefer one strong, well-evidenced finding over several weak ones, and
+do not dilute serious findings with filler or speculation. If the change is
+genuinely safe, say so and report no findings.
+
+## Final check
+
+Before returning, re-read each finding and confirm it is:
+
+- tied to a concrete code location in or near the change,
+- plausible under a real runtime, exploit, regression, or rollout scenario,
+- not already prevented by an existing guard, test, constraint, or framework behavior,
+- actionable, with a fix or test specific enough to act on.
+
+Drop or downgrade any finding that fails a check. After the first issue, also
+check for second-order failures, empty-state and boundary behavior, and follow-on
+effects before finalizing.
+
 ## Output
 
 Return only concrete findings, using this format:
