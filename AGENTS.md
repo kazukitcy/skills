@@ -16,10 +16,10 @@ This repository is the authoritative editing source for `kazukitcy/skills`, a co
 - Use lowercase kebab-case for skill directory names.
 - Keep the skill directory name identical to the `name:` value in `SKILL.md` frontmatter.
 - Put agent-facing instructions in `SKILL.md`.
-- Keep each skill self-contained. Put helper scripts in `<skill-name>/scripts/`, tests in `<skill-name>/tests/`, and supporting reference files inside the same skill directory.
+- Keep each skill self-contained. Put helper scripts in `<skill-name>/scripts/` and supporting reference files inside the same skill directory.
 - Make helper scripts executable when agents are expected to run them directly.
 - Do not rely on unstated local shell aliases or machine-specific configuration.
-- Define mechanically checkable contracts in tests, linters, or structured frontmatter. Do not rely on prompt-only rules when a rule can be checked statically.
+- Define mechanically checkable contracts in linters or structured frontmatter where possible. Do not rely on prompt-only rules when a rule can be checked statically.
 
 ## Local Runtime Validation
 
@@ -48,7 +48,6 @@ Repository-level files, including `README.md` and `AGENTS.md`, do not need to be
 
 ## Commit Checklist
 
-- Run `node --test */tests/*.test.mjs`.
 - Confirm each changed skill directory still has matching `SKILL.md` frontmatter.
 - Confirm `README.md` lists any added, renamed, or removed skill correctly.
 - Check `git status --short` and commit only the intended files.
