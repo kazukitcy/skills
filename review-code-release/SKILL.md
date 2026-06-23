@@ -1,6 +1,6 @@
 ---
 name: review-code-release
-description: Specialist review lens for release risks: migrations, config, feature flags, deploy ordering, rollback, and observability. Use as a focused lens, usually routed by the review-code orchestrator, when changes touch schema migrations, backfills, config, feature flags, deploy ordering, rollback, or observability.
+description: Specialist review lens for release risks involving migrations, config, feature flags, deploy ordering, rollback, and observability. Use as a focused lens, usually routed by the review-code orchestrator, when changes touch schema migrations, backfills, config, feature flags, deploy ordering, rollback, or observability.
 ---
 
 # Review Code: Release & Operability

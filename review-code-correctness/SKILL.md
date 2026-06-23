@@ -1,6 +1,6 @@
 ---
 name: review-code-correctness
-description: Specialist review lens for functional correctness: logic errors, edge cases, invariants, null handling, and error paths. Use as a focused lens, usually routed by the review-code orchestrator, when changed logic, conditionals, parsing, validation, or error handling needs a behavior-bug check.
+description: Specialist review lens for functional correctness issues such as logic errors, edge cases, invariants, null handling, and error paths. Use as a focused lens, usually routed by the review-code orchestrator, when changed logic, conditionals, parsing, validation, or error handling needs a behavior-bug check.
 ---
 
 # Review Code: Correctness

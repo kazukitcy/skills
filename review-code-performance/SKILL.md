@@ -1,6 +1,6 @@
 ---
 name: review-code-performance
-description: Specialist review lens for performance risks: hot paths, N+1 queries, unbounded work, inefficient algorithms, caching, and pagination. Use as a focused lens, usually routed by the review-code orchestrator, when changes touch queries, loops over large data, caches, pagination, or latency-sensitive paths.
+description: Specialist review lens for performance risks involving hot paths, N+1 queries, unbounded work, inefficient algorithms, caching, and pagination. Use as a focused lens, usually routed by the review-code orchestrator, when changes touch queries, loops over large data, caches, pagination, or latency-sensitive paths.
 ---
 
 # Review Code: Performance

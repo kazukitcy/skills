@@ -1,6 +1,6 @@
 ---
 name: review-code-design
-description: Specialist review lens for design and maintainability: module boundaries, API contracts, dependency direction, and future change safety. Use as a focused lens, usually routed by the review-code orchestrator, when changes affect public contracts, layering, coupling, or where responsibility for logic lives.
+description: Specialist review lens for design and maintainability concerns such as module boundaries, API contracts, dependency direction, and future change safety. Use as a focused lens, usually routed by the review-code orchestrator, when changes affect public contracts, layering, coupling, or where responsibility for logic lives.
 ---
 
 # Review Code: Design & Maintainability

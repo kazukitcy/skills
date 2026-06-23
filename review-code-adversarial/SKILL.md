@@ -1,6 +1,6 @@
 ---
 name: review-code-adversarial
-description: Specialist adversarial review lens that tries to break safety, correctness, compatibility, reliability, security, and rollout assumptions on high-risk changes. Use as a focused lens, usually routed by the review-code orchestrator, only for high-risk changes: auth, money, migrations, async/idempotency, external input, or irreversible actions.
+description: Specialist adversarial review lens that tries to break safety, correctness, compatibility, reliability, security, and rollout assumptions on high-risk changes. Use as a focused lens, usually routed by the review-code orchestrator, only for high-risk changes involving auth, money, migrations, async/idempotency, external input, or irreversible actions.
 ---
 
 # Review Code: Adversarial

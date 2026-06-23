@@ -1,6 +1,6 @@
 ---
 name: review-code-security
-description: Specialist review lens for security and privacy risks: authentication, authorization, tenant isolation, PII, secrets, injection, and data exposure. Use as a focused lens, usually routed by the review-code orchestrator, when changes touch auth, permissions, tenant boundaries, PII, secrets, input handling, uploads, webhooks, or data export.
+description: Specialist review lens for security and privacy risks involving authentication, authorization, tenant isolation, PII, secrets, injection, and data exposure. Use as a focused lens, usually routed by the review-code orchestrator, when changes touch auth, permissions, tenant boundaries, PII, secrets, input handling, uploads, webhooks, or data export.
 ---
 
 # Review Code: Security & Privacy

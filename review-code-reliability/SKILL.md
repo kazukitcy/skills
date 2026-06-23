@@ -1,6 +1,6 @@
 ---
 name: review-code-reliability
-description: Specialist review lens for reliability risks: concurrency, retries, idempotency, timeouts, partial failure, transactions, and locks. Use as a focused lens, usually routed by the review-code orchestrator, when changes touch async jobs, retries, locks, transactions, queues, or anything with partial-failure or ordering risk.
+description: Specialist review lens for reliability risks involving concurrency, retries, idempotency, timeouts, partial failure, transactions, and locks. Use as a focused lens, usually routed by the review-code orchestrator, when changes touch async jobs, retries, locks, transactions, queues, or anything with partial-failure or ordering risk.
 ---
 
 # Review Code: Reliability

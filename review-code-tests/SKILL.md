@@ -1,6 +1,6 @@
 ---
 name: review-code-tests
-description: Specialist review lens for test adequacy: missing, weak, brittle, or misleading tests, and targeted verification for changed behavior. Use as a focused lens, usually routed by the review-code orchestrator, when changed behavior lacks tests or regression, boundary, authorization, or concurrency coverage may be inadequate.
+description: Specialist review lens for test adequacy concerns such as missing, weak, brittle, or misleading tests, and targeted verification for changed behavior. Use as a focused lens, usually routed by the review-code orchestrator, when changed behavior lacks tests or regression, boundary, authorization, or concurrency coverage may be inadequate.
 ---
 
 # Review Code: Test Adequacy
