@@ -1,0 +1,4 @@
+interface:
+  display_name: "Review Code: Adversarial"
+  short_description: "Adversarially review high-risk changes"
+  default_prompt: "Use $review-code-adversarial to adversarially review a high-risk change, trying to break its safety, correctness, compatibility, reliability, and rollout assumptions, returning concrete findings only."

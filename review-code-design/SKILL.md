@@ -1,0 +1,89 @@
+---
+name: review-code-design
+description: Specialist review lens for design and maintainability: module boundaries, API contracts, dependency direction, and future change safety. Use as a focused lens, usually routed by the review-code orchestrator, when changes affect public contracts, layering, coupling, or where responsibility for logic lives.
+---
+
+# Review Code: Design & Maintainability
+
+Use this tool-neutral skill to review code changes for design and maintainability only. The
+active tool performs the review directly with the capabilities available in its
+environment. This skill is read-only: do not edit files, apply patches, or commit.
+
+Review target and context: the change and scope the user asked you to review
+(e.g. working tree, staged diff, branch, commit, or named files).
+
+## Scope rules
+
+- Review only design and maintainability.
+- Do not report generic best practices.
+- Do not report style-only issues unless they hide a concrete defect.
+- Do not report speculative issues without a concrete path and code evidence.
+
+## Look for
+
+- misplaced responsibility; layering or dependency-direction violations
+- domain model inconsistencies; duplicated business logic
+- unclear or unstable API contracts; accidental public API changes
+- backward compatibility risks; tight coupling introduced by the change
+- configuration or policy logic embedded in the wrong layer
+- abstractions that hide important failure modes
+- unnecessary generalization that obscures behavior; insufficient encapsulation of invariants
+- naming that materially misleads about behavior
+- code structure likely to cause future unsafe edits
+
+## Required evidence
+
+For each finding, identify:
+
+- the exact changed code or nearby code that causes the issue
+- a plausible runtime, exploit, regression, or rollout path
+- why existing checks, tests, guards, constraints, policies, or framework behavior do not prevent it
+- the expected behavior
+- the likely wrong behavior or risk
+- the smallest useful fix or verification
+
+## Severity
+
+- P0: immediate production outage, critical data loss, or critical security breach.
+- P1: blocking. Likely serious regression, auth bypass, data exposure, irreversible bad state, or unsafe migration.
+- P2: important but non-blocking.
+- P3: minor suggestion. Report a P3 only when it is unusually high-value; otherwise omit it.
+
+Prioritize P0–P2 findings. Report confidence high or medium only.
+
+confidence high: code evidence and path are clear; existing protections checked.
+confidence medium: evidence exists but some uncertainty in call path or runtime conditions.
+A low-confidence hypothesis is not a finding: put it under Assumptions checked instead.
+
+## Output
+
+Return only concrete findings, using this format:
+
+```text
+## Findings
+
+### <severity>: <claim>
+
+- severity: P0 | P1 | P2 | P3
+- confidence: high | medium
+- location: `<file>:<line>` or `<file>::<function>`
+- claim: <one sentence>
+- evidence: <specific code behavior or diff evidence>
+- path: <failure, exploit, regression, rollout, or verification path>
+- impact: <user/system/security/business impact>
+- fix: <minimal remediation>
+- test: <suggested test or verification>
+```
+
+If there are no concrete findings, return this instead:
+
+```text
+## Findings
+
+No concrete design and maintainability findings found.
+
+## Assumptions checked
+
+- <assumption checked>
+- <assumption checked>
+```

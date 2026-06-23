@@ -1,0 +1,4 @@
+interface:
+  display_name: "Review Code: Reliability"
+  short_description: "Review changes for reliability"
+  default_prompt: "Use $review-code-reliability to review the current diff for reliability, returning concrete findings only."

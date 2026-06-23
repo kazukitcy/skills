@@ -1,0 +1,4 @@
+interface:
+  display_name: "Review Code: Performance"
+  short_description: "Review changes for performance"
+  default_prompt: "Use $review-code-performance to review the current diff for performance, returning concrete findings only."

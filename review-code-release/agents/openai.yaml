@@ -1,0 +1,4 @@
+interface:
+  display_name: "Review Code: Release & Operability"
+  short_description: "Review changes for release and operability"
+  default_prompt: "Use $review-code-release to review the current diff for release and operability, returning concrete findings only."
