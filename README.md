@@ -28,13 +28,6 @@ apm install -g kazukitcy/skills/<skill-name>#v0.1.0
 
 ## Skills
 
-### Coding
-
-| Skill | Description | Install |
-| --- | --- | --- |
-| [coding-rescue](./coding-rescue) | Perform a tool-neutral bounded engineering rescue task usable by any coding tool. | `apm install -g kazukitcy/skills/coding-rescue` |
-| [coding-review](./coding-review) | Perform a tool-neutral, read-only code review usable by any coding tool. | `apm install -g kazukitcy/skills/coding-review` |
-
 ### Review
 
 The `review-code` orchestrator fans out to the `review-code-*` specialists, so install the orchestrator together with the lenses you want it to route to.
@@ -72,13 +65,6 @@ dependencies:
 | Skill | Description | Install |
 | --- | --- | --- |
 | [rust-api-guidelines](./rust-api-guidelines) | Review Rust APIs against the Rust API Guidelines, with the full upstream guidelines vendored as references. | `apm install -g kazukitcy/skills/rust-api-guidelines` |
-
-### Claude Code
-
-| Skill | Description | Install |
-| --- | --- | --- |
-| [claude-code-review](./claude-code-review) | Delegate an independent read-only code review from an agent to local Claude Code. | `apm install -g kazukitcy/skills/claude-code-review` |
-| [claude-code-rescue](./claude-code-rescue) | Delegate a bounded investigation or explicitly write-capable engineering task from an agent to local Claude Code. | `apm install -g kazukitcy/skills/claude-code-rescue` |
 
 ## License
 

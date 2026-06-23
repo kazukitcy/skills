@@ -13,7 +13,7 @@ import test from "node:test";
 const repoRoot = new URL("../../", import.meta.url);
 const read = (p) => readFile(new URL(p, repoRoot), "utf8");
 
-// Keep the literal tool word out of the test source too (matches coding-rescue).
+// Keep the literal tool word out of the test source too (tool-neutral convention).
 function blockedToolWords() {
   return [
     ["C", "l", "a", "u", "d", "e"].join(""),
