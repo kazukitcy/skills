@@ -67,12 +67,6 @@ dependencies:
 | [review-code-release](./review-code-release) | Review migration, config, feature-flag, deploy-order, rollback, and observability risks. | `apm install -g kazukitcy/skills/review-code-release` |
 | [review-code-adversarial](./review-code-adversarial) | Adversarially review high-risk changes by trying to break safety and rollout assumptions. | `apm install -g kazukitcy/skills/review-code-adversarial` |
 
-### GitHub
-
-| Skill | Description | Install |
-| --- | --- | --- |
-| [github-gh](./github-gh) | Use the local GitHub CLI safely for repositories, files, issues, PRs, Actions, releases, gists, projects, and `gh api` fallbacks. | `apm install -g kazukitcy/skills/github-gh` |
-
 ### Rust
 
 | Skill | Description | Install |
