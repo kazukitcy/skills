@@ -1,17 +1,8 @@
----
-name: review-code-adversarial
-description: Specialist adversarial review lens that tries to break safety, correctness, compatibility, reliability, security, and rollout assumptions on high-risk changes. Use as a focused lens, usually routed by the review-code orchestrator, only for high-risk changes involving auth, money, migrations, async/idempotency, external input, or irreversible actions.
----
-
 # Review Code: Adversarial
 
 Use this tool-neutral skill for high-risk changes only. Your job is not a balanced
 review; it is to try to disprove the assumption that this change is safe, correct,
-compatible, reliable, and deployable. The active tool performs the work in its
-environment. Read-only: do not edit files, apply patches, or commit.
-
-Review target and context: the change and scope the user asked you to review
-(e.g. working tree, staged diff, branch, commit, or named files).
+compatible, reliable, and deployable.
 
 Do not report generic risks. Do not report any issue unless you can describe a
 concrete failure path.
@@ -41,13 +32,6 @@ missing, do not report it as a finding — list it under Assumptions checked. Re
 confidence high or medium only; a low-confidence hypothesis goes under Assumptions
 checked.
 
-## Severity
-
-- P0: immediate production outage, critical data loss, or critical security breach.
-- P1: blocking. Likely serious regression, auth bypass, data exposure, irreversible bad state, or unsafe migration.
-- P2: important but non-blocking.
-- P3: minor suggestion. Report only when unusually high-value.
-
 ## Calibration
 
 Default to skepticism. Do not give credit for good intent, partial fixes, or
@@ -56,22 +40,12 @@ weakness. Prefer one strong, well-evidenced finding over several weak ones, and
 do not dilute serious findings with filler or speculation. If the change is
 genuinely safe, say so and report no findings.
 
-## Final check
+## Shared rubric
 
-Before returning, re-read each finding and confirm it is:
-
-- tied to a concrete code location in or near the change,
-- plausible under a real runtime, exploit, regression, or rollout scenario,
-- not already prevented by an existing guard, test, constraint, or framework behavior,
-- actionable, with a fix or test specific enough to act on.
-
-Drop or downgrade any finding that fails a check. After the first issue, also
-check for second-order failures, empty-state and boundary behavior, and follow-on
-effects before finalizing.
-
-## Output
-
-Return only concrete findings, using this format:
+Read `references/shared-rubric.md` for the severity scale, confidence rule, and
+final check. Use its output format **plus** two extra fields per finding —
+`adversarial scenario` (the attacker/user/client/worker/deployment state) and
+`existing protection checked` (guards, tests, constraints, policies checked):
 
 ```text
 ## Findings

@@ -1,4 +1,0 @@
-interface:
-  display_name: "Review Code: Test Adequacy"
-  short_description: "Review changes for test adequacy"
-  default_prompt: "Use $review-code-tests to review the current diff for test adequacy, returning concrete findings only."

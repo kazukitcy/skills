@@ -1,4 +1,0 @@
-interface:
-  display_name: "Review Code: Design & Maintainability"
-  short_description: "Review changes for design and maintainability"
-  default_prompt: "Use $review-code-design to review the current diff for design and maintainability, returning concrete findings only."
