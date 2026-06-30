@@ -1,4 +1,0 @@
-interface:
-  display_name: "Review Code: Correctness"
-  short_description: "Review changes for correctness"
-  default_prompt: "Use $review-code-correctness to review the current diff for correctness, returning concrete findings only."

@@ -1,35 +1,13 @@
----
-name: review-code-design
-description: Specialist review lens for design and maintainability concerns such as module boundaries, API contracts, dependency direction, and future change safety. Use as a focused lens, usually routed by the review-code orchestrator, when changes affect public contracts, layering, coupling, or where responsibility for logic lives.
----
+# Shared review rubric
 
-# Review Code: Design & Maintainability
+Every `review-code` checklist shares this rubric. A checklist reference file
+(`references/<topic>-checklist.md`) defines what to look for; this file defines the
+required evidence, severity scale, confidence rule, calibration, final check,
+and output format every checklist uses. Read both before reviewing.
 
-Use this tool-neutral skill to review code changes for design and maintainability only. The
-active tool performs the review directly with the capabilities available in its
-environment. This skill is read-only: do not edit files, apply patches, or commit.
-
-Review target and context: the change and scope the user asked you to review
-(e.g. working tree, staged diff, branch, commit, or named files).
-
-## Scope rules
-
-- Review only design and maintainability.
-- Do not report generic best practices.
-- Do not report style-only issues unless they hide a concrete defect.
-- Do not report speculative issues without a concrete path and code evidence.
-
-## Look for
-
-- misplaced responsibility; layering or dependency-direction violations
-- domain model inconsistencies; duplicated business logic
-- unclear or unstable API contracts; accidental public API changes
-- backward compatibility risks; tight coupling introduced by the change
-- configuration or policy logic embedded in the wrong layer
-- abstractions that hide important failure modes
-- unnecessary generalization that obscures behavior; insufficient encapsulation of invariants
-- naming that materially misleads about behavior
-- code structure likely to cause future unsafe edits
+This review is read-only: do not edit files, apply patches, or commit. Review
+target and context: the change and scope the user asked you to review (e.g.
+working tree, staged diff, branch, commit, or named files).
 
 ## Required evidence
 
@@ -59,7 +37,7 @@ A low-confidence hypothesis is not a finding: put it under Assumptions checked i
 
 Prefer one strong, well-evidenced finding over several weak ones. Do not dilute
 serious findings with filler, restated guards, or speculation. If the change is
-clean for this lens, say so and report no findings rather than padding the list.
+clean for this checklist, say so and report no findings rather than padding the list.
 
 ## Final check
 
@@ -94,12 +72,12 @@ Return only concrete findings, using this format:
 - test: <suggested test or verification>
 ```
 
-If there are no concrete findings, return this instead:
+If there are no concrete findings, return this instead (name the checklist you ran):
 
 ```text
 ## Findings
 
-No concrete design and maintainability findings found.
+No concrete <checklist> findings found.
 
 ## Assumptions checked
 

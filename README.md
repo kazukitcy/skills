@@ -30,35 +30,15 @@ apm install -g kazukitcy/skills/<skill-name>#v0.1.0
 
 ### Review
 
-The `review-code` orchestrator fans out to the `review-code-*` specialists, so install the orchestrator together with the lenses you want it to route to.
-
-Install the whole family with a project's `apm.yml`:
-
-```yaml
-dependencies:
-  apm:
-    - kazukitcy/skills/review-code
-    - kazukitcy/skills/review-code-correctness
-    - kazukitcy/skills/review-code-security
-    - kazukitcy/skills/review-code-tests
-    - kazukitcy/skills/review-code-design
-    - kazukitcy/skills/review-code-performance
-    - kazukitcy/skills/review-code-reliability
-    - kazukitcy/skills/review-code-release
-    - kazukitcy/skills/review-code-adversarial
-```
+`review-code` is a single skill: an orchestrator that risk-routes a diff to the
+relevant review checklists (correctness, security, tests, design, performance,
+reliability, release, adversarial), runs each as a subagent over a bundled
+reference file under `review-code/references/`, and consolidates severity-ranked
+findings.
 
 | Skill | Description | Install |
 | --- | --- | --- |
-| [review-code](./review-code) | Orchestrate risk-routed code review and consolidate severity-ranked findings. | `apm install -g kazukitcy/skills/review-code` |
-| [review-code-correctness](./review-code-correctness) | Review functional behavior for logic, edge-case, invariant, and error-path defects. | `apm install -g kazukitcy/skills/review-code-correctness` |
-| [review-code-security](./review-code-security) | Review security and privacy risks around auth, tenant boundaries, secrets, and exposure. | `apm install -g kazukitcy/skills/review-code-security` |
-| [review-code-tests](./review-code-tests) | Review whether changed behavior has meaningful regression and boundary coverage. | `apm install -g kazukitcy/skills/review-code-tests` |
-| [review-code-design](./review-code-design) | Review design, module boundaries, contracts, coupling, and maintainability risks. | `apm install -g kazukitcy/skills/review-code-design` |
-| [review-code-performance](./review-code-performance) | Review hot paths, unbounded work, query behavior, caching, and latency risks. | `apm install -g kazukitcy/skills/review-code-performance` |
-| [review-code-reliability](./review-code-reliability) | Review concurrency, retries, transactions, idempotency, and partial-failure risks. | `apm install -g kazukitcy/skills/review-code-reliability` |
-| [review-code-release](./review-code-release) | Review migration, config, feature-flag, deploy-order, rollback, and observability risks. | `apm install -g kazukitcy/skills/review-code-release` |
-| [review-code-adversarial](./review-code-adversarial) | Adversarially review high-risk changes by trying to break safety and rollout assumptions. | `apm install -g kazukitcy/skills/review-code-adversarial` |
+| [review-code](./review-code) | Risk-routed, multi-checklist code review with consolidated severity-ranked findings. | `apm install -g kazukitcy/skills/review-code` |
 
 ### Rust
 

@@ -1,6 +1,6 @@
 ---
 name: review-code
-description: Orchestrates high-signal, tool-neutral code review by risk-routing a diff to review-code-* specialist skills and consolidating their findings. Use to review a working tree, staged diff, branch, PR, or commit range and get severity-ranked findings instead of generic approval.
+description: Orchestrates high-signal, tool-neutral code review by risk-routing a diff to specialist review checklists and consolidating their findings. Use to review a working tree, staged diff, branch, PR, or commit range and get severity-ranked findings instead of generic approval.
 ---
 
 # Review Code: Orchestrator
@@ -9,7 +9,7 @@ Use this tool-neutral skill to coordinate a high-signal review of code changes.
 The active tool performs the work with the capabilities available in its
 environment. This skill is read-only: do not edit files, apply patches, commit,
 or produce generic approval language. For non-trivial changes, review through the
-relevant specialist lenses rather than giving a single undifferentiated opinion.
+relevant review checklists rather than giving a single undifferentiated opinion.
 
 Review target: the change the user asked you to review. If the user named none,
 resolve it as described under "Review target resolution".
@@ -37,108 +37,111 @@ checkout, or otherwise mutate the tree.
 1. Identify the review target.
 2. Inspect changed files and enough nearby code to infer intent.
 3. Build a risk profile of the change.
-4. Select only the relevant `review-code-*` specialists (see Routing).
-5. Run each selected specialist as a subagent (see Execution).
-6. Wait for all selected specialist results.
+4. Select only the relevant checklists (see Routing).
+5. Run each selected checklist as a subagent (see Execution).
+6. Wait for all selected checklist results.
 7. Deduplicate findings.
 8. Drop speculative findings that lack concrete code evidence.
-9. Reclassify severity where the specialist over- or under-rated it.
+9. Reclassify severity where the checklist over- or under-rated it.
 10. Run the verification pass over only the important candidates: P0/P1 candidates,
-    security findings, adversarial findings, or conflicting specialist conclusions.
+    security findings, adversarial findings, or conflicting checklist conclusions.
 11. Produce one concise consolidated review.
 
 ## Execution
 
-Run each selected specialist in an isolated subagent context when your environment
-supports subagents or parallel task spawning, so specialists do not contaminate
-each other's reasoning. Spawn one subagent per selected specialist, pass it a
-focused task prompt, and instruct it to use the corresponding `review-code-*` skill
-as its review instructions. Wait for all subagents, then consolidate.
+This skill bundles every review checklist as a reference file under `references/`.
+Run each selected checklist as its own subagent review when your environment
+supports subagents or parallel task spawning, so the reviews stay independent
+and do not contaminate each other's reasoning. For each selected checklist:
+
+1. Spawn one subagent with a focused task prompt naming the review target and scope.
+2. Instruct it to read this skill's `references/<topic>-checklist.md` **and**
+   `references/shared-rubric.md`, and to follow them as its review instructions.
+3. Instruct it to return concrete findings only, in the rubric's output format.
+
+Wait for all subagents, then consolidate.
 
 Some environments only spawn subagents when explicitly asked — in that case,
-explicitly request subagent spawning per selected specialist.
+explicitly request subagent spawning per selected checklist.
 
-Fallback when a specialist is unavailable: if a selected `review-code-*` skill is
-not installed or cannot be invoked from inside a child subagent, **do not claim
-its lens was covered at specialist quality** — this orchestrator does not carry the
-specialist's detailed checklist, so a direct pass here is best-effort only, not
-equivalent. Handle it as follows:
+Fallback when subagents are unavailable: if your environment cannot spawn
+subagents, run the selected checklists yourself, sequentially — read
+`references/<topic>-checklist.md` and `references/shared-rubric.md` for each and apply
+them in turn, keeping each review's reasoning separate, before consolidating. This
+is lower-throughput but still covers every selected checklist at full depth,
+because the reference files travel with this skill.
 
-1. Record the lens as **not reviewed at full depth** under
-   `## Review scope` → Specialists unavailable, and recommend installing the
-   specialist (`apm install -g kazukitcy/skills/review-code-<s>`) for a complete
-   review of that dimension.
-2. You may still do a brief best-effort pass on that dimension using this skill's
-   `## Severity` scale and `## Finding quality bar`, but cap any finding it
-   produces at `confidence: medium` and note in the finding that it came from a
-   fallback pass without the specialist checklist.
-3. Do not create custom subagent definition files.
-4. Set `## Verification` → Fallback mode used to the list of lenses handled this
-   way, so the consumer can see exactly which dimensions are under-covered.
+If a `references/<topic>-checklist.md` or `references/shared-rubric.md` file cannot be read,
+the skill is installed incompletely: record the checklist under `## Review scope` →
+Checklists unavailable, recommend reinstalling `review-code`
+(`apm install -g kazukitcy/skills/review-code`), and do not claim that checklist was
+covered.
 
-The point is honesty about coverage: an uninstalled lens is a gap to surface, not
-a gap to paper over with a full-confidence verdict.
+## Available checklists
 
-## Available specialists
+Each checklist is a reference file under this skill's `references/` directory:
 
-- `review-code-correctness`
-- `review-code-security`
-- `review-code-tests`
-- `review-code-design`
-- `review-code-performance`
-- `review-code-reliability`
-- `review-code-release`
-- `review-code-adversarial`
+- `references/correctness-checklist.md`
+- `references/security-checklist.md`
+- `references/tests-checklist.md`
+- `references/design-checklist.md`
+- `references/performance-checklist.md`
+- `references/reliability-checklist.md`
+- `references/release-checklist.md`
+- `references/adversarial-checklist.md`
+
+Every checklist also reads `references/shared-rubric.md` for the severity scale,
+evidence checklist, and output format.
 
 ## Routing rules
 
-Do not run all specialists by default. Select by the kind of change:
+Do not run all checklists by default. Select by the kind of change:
 
-- docs/comment-only with no contract impact: no specialist.
+- docs/comment-only with no contract impact: no checklist.
 - docs that change a public contract, API surface, or developer workflow
-  (README, API docs, upgrade/migration guide): `review-code-release`, `review-code-tests`.
-- generated docs or API reference docs: `review-code-release`.
-- security docs or operational runbooks: `review-code-security` and/or
-  `review-code-reliability` as the content warrants.
-- test-only: `review-code-tests`.
-- small pure logic change: `review-code-correctness`, `review-code-tests`.
-- normal application change: `review-code-correctness`, `review-code-tests`, `review-code-design`.
-- public API, SDK, schema, or event contract: add `review-code-release`.
+  (README, API docs, upgrade/migration guide): `release`, `tests`.
+- generated docs or API reference docs: `release`.
+- security docs or operational runbooks: `security` and/or `reliability` as the
+  content warrants.
+- test-only: `tests`.
+- small pure logic change: `correctness`, `tests`.
+- normal application change: `correctness`, `tests`, `design`.
+- public API, SDK, schema, or event contract: add `release`.
 - auth, authorization, role, permission, or tenant boundary:
-  `review-code-correctness`, `review-code-security`, `review-code-tests`, `review-code-adversarial`.
+  `correctness`, `security`, `tests`, `adversarial`.
 - PII, secrets, unsafe logs, data export, audit, retention, deletion:
-  `review-code-security`, `review-code-tests`, `review-code-adversarial`.
+  `security`, `tests`, `adversarial`.
 - billing, payment, credits, quota, inventory, irreversible user actions:
-  `review-code-correctness`, `review-code-security`, `review-code-reliability`, `review-code-tests`, `review-code-adversarial`.
+  `correctness`, `security`, `reliability`, `tests`, `adversarial`.
 - external input, upload, webhook, callback, parser, deserialization:
-  `review-code-correctness`, `review-code-security`, `review-code-tests`, `review-code-adversarial`.
+  `correctness`, `security`, `tests`, `adversarial`.
 - database schema, migration, data backfill:
-  `review-code-correctness`, `review-code-release`, `review-code-reliability`, `review-code-tests`, `review-code-adversarial`.
+  `correctness`, `release`, `reliability`, `tests`, `adversarial`.
 - async job, queue, retry, timeout, lock, idempotency, concurrency:
-  `review-code-correctness`, `review-code-reliability`, `review-code-tests`, `review-code-adversarial`.
+  `correctness`, `reliability`, `tests`, `adversarial`.
 - hot path, query, cache, pagination, memory, algorithm:
-  `review-code-correctness`, `review-code-performance`, `review-code-tests`.
+  `correctness`, `performance`, `tests`.
 - config, feature flag, deploy order, rollback, observability:
-  `review-code-release`, `review-code-reliability`, `review-code-tests`.
-- large cross-module change: `review-code-correctness`, `review-code-tests`,
-  `review-code-design`, plus risk-specific specialists.
+  `release`, `reliability`, `tests`.
+- large cross-module change: `correctness`, `tests`, `design`, plus
+  risk-specific checklists.
 
 Augment by signal: even when a change looks like a normal application change, if
 the diff touches external input, persistence (DB/storage/migration), async or
-concurrency, or auth/permissions, add the matching specialist (`-security`,
-`-reliability`, `-release`, or `-adversarial`) for that signal.
+concurrency, or auth/permissions, add the matching checklist (`security`,
+`reliability`, `release`, or `adversarial`) for that signal.
 
-Run the verification pass only after specialist results exist and only when needed.
+Run the verification pass only after checklist results exist and only when needed.
 
-## Subagent budget
+## Checklist budget
 
-- trivial changes: 0 specialists
-- small code changes: ~2 specialists
-- normal code changes: ~3 specialists
-- high-risk changes: 4–5 specialists
-- critical or very large changes: up to 7 specialists, plus the verification pass when needed
+- trivial changes: 0 checklists
+- small code changes: ~2 checklists
+- normal code changes: ~3 checklists
+- high-risk changes: 4–5 checklists
+- critical or very large changes: up to 7 checklists, plus the verification pass when needed
 
-Do not launch specialists whose lens does not match the diff.
+Do not launch checklists whose focus does not match the diff.
 
 ## Severity
 
@@ -172,7 +175,7 @@ say so rather than manufacturing findings to fill a section.
 
 Before finalizing, run a verification pass over the important candidate findings
 only — P0/P1 candidates, security findings, adversarial findings, or conflicting
-specialist conclusions. Skip the pass entirely when no candidate meets that bar.
+checklist conclusions. Skip the pass entirely when no candidate meets that bar.
 This is an internal step of the orchestrator, not a separate skill: it always has
 the candidate findings in hand, so it needs no standalone input contract.
 
@@ -205,17 +208,9 @@ findings; record them under `## Verification` (or `## Notes`) instead.
 ## Final output format
 
 Lead with the findings, ordered by severity; put the summary and operational
-metadata after. Each finding uses this schema:
-
-- severity: P0 | P1 | P2 | P3
-- confidence: high | medium
-- location: `<file>:<line>` or `<file>::<function>`
-- claim: <one sentence>
-- evidence: <specific code behavior or diff evidence>
-- path: <failure, exploit, regression, rollout, or verification path>
-- impact: <user/system/security/business impact>
-- fix: <minimal remediation>
-- test: <suggested test or verification>
+metadata after. Each finding uses the per-finding schema defined in
+`references/shared-rubric.md` (the `## Output` block): severity, confidence,
+location, claim, evidence, path, impact, fix, test.
 
 Return exactly these sections, in this order:
 
@@ -240,9 +235,9 @@ Only tests tied to changed behavior or reported findings.
 ## Review scope
 - Target:
 - Changed areas:
-- Specialists run:
-- Specialists skipped:
-- Specialists unavailable:
+- Checklists run:
+- Checklists skipped:
+- Checklists unavailable:
 
 ## Verification
 - Checks performed:

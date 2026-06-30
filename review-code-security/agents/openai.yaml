@@ -1,4 +1,0 @@
-interface:
-  display_name: "Review Code: Security & Privacy"
-  short_description: "Review changes for security and privacy"
-  default_prompt: "Use $review-code-security to review the current diff for security and privacy, returning concrete findings only."
