@@ -1,0 +1,35 @@
+{
+  "skill_name": "testkit-strategy-review",
+  "evals": [
+    {
+      "id": "strategy-layering-001",
+      "prompt": "Review a project test strategy. Current suite has many unit tests, three slow end-to-end tests in PR, no nightly lane, and no release checklist. The product has authentication, imports, and background jobs.",
+      "expected_output": "Risk-based test portfolio with local/PR/nightly/release layers, harness independence review, oracle strategy, and P0/P1/P2 roadmap.",
+      "assertions": [
+        "Separates fast and deep lanes",
+        "Names risks",
+        "Avoids simply recommending more tests",
+        "Includes independent evidence review"
+      ]
+    },
+    {
+      "id": "strategy-ambiguous-001",
+      "prompt": "Our tests feel weak. What should we do?",
+      "expected_output": "Asks for or states assumptions about risk profile and current test layers; provides a conservative strategy outline without inventing project details.",
+      "assertions": [
+        "Marks missing context",
+        "Gives next evidence to collect",
+        "Does not invent specific product behavior"
+      ]
+    },
+    {
+      "id": "strategy-nearmiss-001",
+      "prompt": "Given this one endpoint spec, generate exact test cases.",
+      "expected_output": "Should indicate this is better handled by testkit-case-design and not produce a broad project strategy.",
+      "assertions": [
+        "Routes to case design",
+        "Does not overproduce strategy content"
+      ]
+    }
+  ]
+}

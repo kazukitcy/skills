@@ -1,0 +1,34 @@
+{
+  "skill_name": "testkit-case-design",
+  "evals": [
+    {
+      "id": "case-api-001",
+      "prompt": "Create tests for: POST /users requires email and password >= 12 chars. Duplicate email is rejected. Success returns created and user id.",
+      "expected_output": "Requirements matrix, oracle choices, normal cases, boundary cases, negative cases, ambiguity list, and priorities.",
+      "assertions": [
+        "Extracts requirements",
+        "Includes empty/missing email and short password",
+        "Marks unspecified error details ambiguous",
+        "Includes oracle for duplicate rejection"
+      ]
+    },
+    {
+      "id": "case-ambiguous-001",
+      "prompt": "The system should handle invalid input nicely. Make tests.",
+      "expected_output": "Marks requirement as not-testable-as-written or ambiguous and proposes clarification and generic failure categories.",
+      "assertions": [
+        "Does not invent expected behavior",
+        "Identifies missing acceptance criteria"
+      ]
+    },
+    {
+      "id": "case-nearmiss-001",
+      "prompt": "Here is a stack trace from production. Turn it into a test.",
+      "expected_output": "Should route to regression design rather than ordinary case design.",
+      "assertions": [
+        "Recognizes bug-driven input",
+        "Suggests regression workflow"
+      ]
+    }
+  ]
+}

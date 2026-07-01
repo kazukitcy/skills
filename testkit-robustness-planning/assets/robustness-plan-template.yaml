@@ -1,0 +1,33 @@
+robustness_plan:
+  risk_surface: []
+  fault_models:
+    - name:
+      injection_point:
+      failure_mode:
+      expected_oracle:
+      priority:
+  fuzz_plan:
+    structured_inputs: []
+    seed_corpus: []
+    mutation_strategy: []
+    oracle: []
+    replay: []
+  crash_recovery_plan:
+    interruption_points: []
+    recovery_oracles: []
+  corrupt_input_plan:
+    valid_seeds: []
+    corruption_methods: []
+    expected_behavior: []
+  resource_lifecycle_checks:
+    resources: []
+    lifecycle_paths: []
+    observation_method:
+  replay_and_regressionization:
+    capture:
+    minimization:
+    regression_location:
+  priorities:
+    p0: []
+    p1: []
+    p2: []

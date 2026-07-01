@@ -1,0 +1,32 @@
+{
+  "skill_name": "testkit-suite-diagnostics",
+  "evals": [
+    {
+      "id": "diagnostics-mutation-001",
+      "prompt": "Line coverage is 93%, but removing an input validation branch survives mutation testing. Diagnose.",
+      "expected_output": "Classifies surviving mutant as missing behavior check or weak oracle, explains why coverage is insufficient, and proposes targeted negative tests/assertions.",
+      "assertions": [
+        "Does not say only increase coverage",
+        "Names oracle weakness",
+        "Provides prioritized improvement"
+      ]
+    },
+    {
+      "id": "diagnostics-ambiguous-001",
+      "prompt": "Coverage dropped by 5%. Is that bad?",
+      "expected_output": "Requests or infers context cautiously, distinguishes risk areas from raw percentage, and suggests reviewing changed branches and assertions.",
+      "assertions": [
+        "Avoids numeric-only judgment",
+        "Mentions behavior and oracle review"
+      ]
+    },
+    {
+      "id": "diagnostics-nearmiss-001",
+      "prompt": "Create release go/no-go criteria.",
+      "expected_output": "Should route to release gate rather than suite diagnostics.",
+      "assertions": [
+        "Routes to release gate"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+[
+  {
+    "query": "import処理について、I/Oエラー、途中クラッシュ、壊れた入力への堅牢性テスト計画を作って",
+    "should_trigger": true
+  },
+  {
+    "query": "fuzz testingのseed corpusとreplay方針を設計して",
+    "should_trigger": true
+  },
+  {
+    "query": "resource exhaustionとtimeout時のcleanupをテストしたい",
+    "should_trigger": true
+  },
+  {
+    "query": "partial writeとretry failureのfault injectionを計画して",
+    "should_trigger": true
+  },
+  {
+    "query": "API仕様から通常系のテストケースを作って",
+    "should_trigger": false
+  },
+  {
+    "query": "stack traceから回帰テストを作って",
+    "should_trigger": false
+  },
+  {
+    "query": "coverage gapを診断して",
+    "should_trigger": false
+  },
+  {
+    "query": "release go/no-goを判断して",
+    "should_trigger": false
+  }
+]

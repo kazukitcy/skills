@@ -1,0 +1,14 @@
+test_cases:
+  - id:
+    requirement_id:
+    category: []
+    behavior_under_test:
+    setup:
+    input_or_action:
+    expected:
+    oracle:
+      type:
+      evidence:
+    priority:
+    ambiguities: []
+    implementation_notes: []

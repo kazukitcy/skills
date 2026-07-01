@@ -1,0 +1,34 @@
+[
+  {
+    "query": "このプロジェクトのテスト戦略を見直して、PR・nightly・releaseで何を走らせるべきか整理して",
+    "should_trigger": true
+  },
+  {
+    "query": "unit/integration/e2e/fuzzの配分を決めたい",
+    "should_trigger": true
+  },
+  {
+    "query": "今のCIが遅い割に信頼できない。テストポートフォリオを設計して",
+    "should_trigger": true
+  },
+  {
+    "query": "複数の独立したテストハーネスが必要か判断して",
+    "should_trigger": true
+  },
+  {
+    "query": "このAPI仕様から境界値テストを作って",
+    "should_trigger": false
+  },
+  {
+    "query": "このstack traceから回帰テストを作って",
+    "should_trigger": false
+  },
+  {
+    "query": "mutation testingのsurviving mutantを分類して",
+    "should_trigger": false
+  },
+  {
+    "query": "リリース前チェックリストを作って",
+    "should_trigger": false
+  }
+]

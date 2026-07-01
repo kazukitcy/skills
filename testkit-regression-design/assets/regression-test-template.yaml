@@ -1,0 +1,22 @@
+regression_case:
+  bug_summary:
+  evidence:
+    report:
+    observed_behavior:
+    affected_context:
+  minimal_reproduction:
+    setup:
+    trigger:
+    dependency_behavior:
+    replay_notes:
+  before_fix_failure:
+  after_fix_expected_behavior:
+  oracle:
+    type:
+    assertions: []
+  regression_test:
+    proposed_name:
+    suite_location:
+    priority:
+  implementation_notes: []
+  clarifications_needed: []

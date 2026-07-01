@@ -1,0 +1,34 @@
+[
+  {
+    "query": "来週リリースする認証機能の品質ゲートを作って",
+    "should_trigger": true
+  },
+  {
+    "query": "pre-release checklistとgo/no-go判断軸を作成して",
+    "should_trigger": true
+  },
+  {
+    "query": "既知issueとrollback readinessを含むrelease readiness reviewをして",
+    "should_trigger": true
+  },
+  {
+    "query": "conditional-goのリスク受け入れ表を作って",
+    "should_trigger": true
+  },
+  {
+    "query": "API仕様から境界値テストを作って",
+    "should_trigger": false
+  },
+  {
+    "query": "本番バグを回帰テスト化して",
+    "should_trigger": false
+  },
+  {
+    "query": "mutation resultを分類して",
+    "should_trigger": false
+  },
+  {
+    "query": "fuzz harnessを設計して",
+    "should_trigger": false
+  }
+]
