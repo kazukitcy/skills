@@ -28,6 +28,12 @@ apm install -g kazukitcy/skills/<skill-name>#v0.1.0
 
 ## Skills
 
+### Authoring
+
+| Skill | Description | Install |
+| --- | --- | --- |
+| [skill-writer](./skill-writer) | Create, revise, and evaluate agent skills with a source-model-based rubric and review checklist. | `apm install -g kazukitcy/skills/skill-writer` |
+
 ### Review
 
 `review-code` is a single skill: an orchestrator that risk-routes a diff to the

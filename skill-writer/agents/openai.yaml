@@ -1,0 +1,4 @@
+interface:
+  display_name: "Skill Writer"
+  short_description: "Create and review agent skills"
+  default_prompt: "Use $skill-writer to design and review an agent skill before publishing it."
