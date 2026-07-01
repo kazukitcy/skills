@@ -1,4 +1,4 @@
 interface:
   display_name: "Review Code"
   short_description: "Orchestrate risk-routed, multi-lens code review"
-  default_prompt: "Use $review-code to review the current diff: risk-route to the relevant review lenses, run each as a subagent over its references/<topic>-lens.md plus references/shared-rubric.md, verify important findings, and return one consolidated severity-ranked review."
+  default_prompt: "Use $review-code to review the current diff: establish the change's stated intent, risk-route to the relevant review lenses (including intent-lens for scope and requirement conformance), run each as a subagent over its references/<topic>-lens.md plus references/shared-rubric.md and references/false-positive-precedents.md, refute the important findings independently, and return one consolidated severity-ranked review."

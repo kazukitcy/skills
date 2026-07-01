@@ -35,7 +35,10 @@ checkout, or otherwise mutate the tree.
 ## Orchestrator responsibilities
 
 1. Identify the review target.
-2. Inspect changed files and enough nearby code to infer intent.
+2. Establish the change's stated intent — the task the user gave, the PR/issue/
+   plan text, or the commit messages (see `references/intent-lens.md` →
+   "Establishing intent") — and inspect changed files and enough nearby code to
+   understand it. If no stated intent exists, infer it from the diff and note that.
 3. Build a risk profile of the change.
 4. Select only the relevant lenses (see Routing).
 5. Run each selected lens as a subagent (see Execution).
@@ -43,8 +46,9 @@ checkout, or otherwise mutate the tree.
 7. Deduplicate findings.
 8. Drop speculative findings that lack concrete code evidence.
 9. Reclassify severity where the lens over- or under-rated it.
-10. Run the verification pass over only the important candidates: P0/P1 candidates,
-    security findings, adversarial findings, or conflicting lens conclusions.
+10. Run the independent refutation pass over only the important candidates: P0/P1
+    candidates, security findings, adversarial findings, or conflicting lens
+    conclusions (see "Verifying important findings").
 11. Produce one concise consolidated review.
 
 ## Execution
@@ -55,8 +59,10 @@ supports subagents or parallel task spawning, so the reviews stay independent
 and do not contaminate each other's reasoning. For each selected lens:
 
 1. Spawn one subagent with a focused task prompt naming the review target and scope.
-2. Instruct it to read this skill's `references/<topic>-lens.md` **and**
-   `references/shared-rubric.md`, and to follow them as its review instructions.
+2. Instruct it to read this skill's `references/<topic>-lens.md`,
+   `references/shared-rubric.md`, **and**
+   `references/false-positive-precedents.md`, and to follow them as its review
+   instructions.
 3. Instruct it to return concrete findings only, in the rubric's output format.
 
 Wait for all subagents, then consolidate.
@@ -66,8 +72,9 @@ explicitly request subagent spawning per selected lens.
 
 Fallback when subagents are unavailable: if your environment cannot spawn
 subagents, run the selected lenses yourself, sequentially — read
-`references/<topic>-lens.md` and `references/shared-rubric.md` for each and apply
-them in turn, keeping each review's reasoning separate, before consolidating. This
+`references/<topic>-lens.md`, `references/shared-rubric.md`, and
+`references/false-positive-precedents.md` for each and apply them in turn, keeping
+each review's reasoning separate, before consolidating. This
 is lower-throughput but still covers every selected lens at full depth,
 because the reference files travel with this skill.
 
@@ -89,9 +96,12 @@ Each lens is a reference file under this skill's `references/` directory:
 - `references/reliability-lens.md`
 - `references/release-lens.md`
 - `references/adversarial-lens.md`
+- `references/intent-lens.md`
 
 Every lens also reads `references/shared-rubric.md` for the scope discipline,
-severity scale, evidence requirements, and output format.
+severity scale, evidence requirements, and output format, and
+`references/false-positive-precedents.md` for the cross-lens exclusions and
+precedents that keep findings high-signal.
 
 ## Routing rules
 
@@ -105,7 +115,7 @@ Do not run all lenses by default. Select by the kind of change:
   content warrants.
 - test-only: `tests`.
 - small pure logic change: `correctness`, `tests`.
-- normal application change: `correctness`, `tests`, `design`.
+- normal application change: `correctness`, `tests`, `design`, `intent`.
 - public API, SDK, schema, or event contract: add `release`.
 - auth, authorization, role, permission, or tenant boundary:
   `correctness`, `security`, `tests`, `adversarial`.
@@ -131,6 +141,11 @@ the diff touches external input, persistence (DB/storage/migration), async or
 concurrency, or auth/permissions, add the matching lens (`security`,
 `reliability`, `release`, or `adversarial`) for that signal.
 
+Run the `intent` lens for any change that has a stated purpose (a review task, a
+PR/issue/plan, or commit messages), so unimplemented requirements and scope creep
+are caught. Skip it only for trivial docs- or comment-only changes, or when no
+stated intent exists and one cannot be inferred.
+
 Run the verification pass only after lens results exist and only when needed.
 
 ## Lens budget
@@ -139,7 +154,10 @@ Run the verification pass only after lens results exist and only when needed.
 - small code changes: ~2 lenses
 - normal code changes: ~3 lenses
 - high-risk changes: 4–5 lenses
-- critical or very large changes: up to 7 lenses, plus the verification pass when needed
+- critical or very large changes: up to 8 lenses, plus the verification pass when needed
+
+The `intent` lens is low-cost and commonly runs alongside the others; count it
+within these budgets rather than on top of them.
 
 Do not launch lenses whose focus does not match the diff.
 
@@ -177,16 +195,29 @@ say so rather than manufacturing findings to fill a section.
 Before finalizing, run a verification pass over the important candidate findings
 only — P0/P1 candidates, security findings, adversarial findings, or conflicting
 lens conclusions. Skip the pass entirely when no candidate meets that bar.
-This is an internal step of the orchestrator, not a separate skill: it always has
-the candidate findings in hand, so it needs no standalone input contract.
 
-For each such candidate, check:
+Run this pass as an **independent refutation**, not a self-check. The lens (or the
+orchestrator) that produced a finding is biased toward confirming it, so verify it
+from fresh eyes whose job is to disprove it:
 
-- Does the cited code exist at the cited location?
-- Is the failure, exploit, regression, or rollout path plausible?
+- When your environment supports subagents, spawn one verification subagent per
+  important candidate, in parallel. Give each only the finding's claim, severity,
+  and the cited `file:line` — **not** the lens's reasoning. Instruct it to try to
+  refute the finding and to default to "rejected" when it cannot substantiate a
+  concrete, reachable path. Have it return a verdict (below) with a one-line
+  justification.
+- When subagents are unavailable, perform the same refutation yourself, candidate
+  by candidate, explicitly arguing against each finding before you keep it.
+
+For each candidate, the refutation checks:
+
+- Does the cited code exist at the cited location? (If the location is wrong, the
+  finding is rejected — a misattributed finding is not actionable.)
+- Is the failure, exploit, regression, or rollout path plausible and reachable?
 - Is the stated impact accurate, or over- or under-stated?
-- Do existing guards, tests, constraints, middleware, policies, feature flags, or
-  framework behavior already prevent it?
+- Do existing guards, tests, constraints, middleware, policies, feature flags,
+  framework behavior, or a `references/false-positive-precedents.md` precedent
+  already prevent or settle it?
 - Is the severity appropriate?
 - Is it duplicated by another finding?
 - Is there a smaller, more precise claim?
@@ -195,9 +226,10 @@ For each such candidate, check:
 
 Classify each verified candidate as one of:
 
-- confirmed: evidence and path support the claim.
+- confirmed: evidence and path survive the refutation.
 - downgraded: the issue is real but severity or confidence is lower.
-- rejected: speculative, prevented, not caused by the diff, or unsupported.
+- rejected: speculative, prevented, misattributed, settled by a precedent, not
+  caused by the diff, or unsupported.
 - needs-info: plausible but unverifiable from available context.
 
 Only confirmed and downgraded candidates appear in the findings sections below
@@ -227,6 +259,8 @@ At most three, only unusually high-value ones. If none, write `None`.
 
 ## Summary
 - Verdict: approve | needs-attention | block
+- Intent conformance: fulfilled | partial | diverged | unknown — one line on the
+  basis (the stated intent used, or that it was inferred from the diff).
 - 2 to 5 sentences.
 
 ## Missing tests

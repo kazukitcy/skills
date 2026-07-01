@@ -3,8 +3,8 @@
 Every `review-code` lens shares this rubric. A lens reference file
 (`references/<topic>-lens.md`) defines what that lens looks for; this file defines
 the scope discipline, required evidence, severity scale, confidence rule,
-calibration, final check, and output format every lens uses. Read both before
-reviewing.
+calibration, final check, and output format every lens uses. Read the lens file,
+this rubric, and `references/false-positive-precedents.md` before reviewing.
 
 This review is read-only: do not edit files, apply patches, or commit. Review
 target and context: the change and scope the user asked you to review (e.g.
@@ -14,10 +14,20 @@ working tree, staged diff, branch, commit, or named files).
 
 Applies to every lens:
 
+- Report only what **this change** introduces or makes newly reachable. A
+  pre-existing issue in untouched code is out of scope; note it at most under
+  Notes, never as a finding blamed on the change.
 - Review only this lens's concern; leave other concerns to their lens.
 - Do not report generic best practices.
 - Do not report style-only issues unless they hide a concrete defect.
 - Do not report speculative issues without a concrete path and code evidence.
+- Do not demand extra hardening, abstraction, or tests for cases that cannot
+  occur (over-engineering). A reviewer prompted to find gaps will report some even
+  when the work is sound — report only gaps that affect correctness or the
+  change's stated intent, and treat optional improvements as P3.
+- Honor `references/false-positive-precedents.md`: do not report a finding a
+  precedent there already settles unless the diff deviates from the safe pattern
+  it assumes.
 
 ## Required evidence
 
