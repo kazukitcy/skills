@@ -1,6 +1,6 @@
 ---
 name: review-code
-description: Orchestrates high-signal, tool-neutral code review by risk-routing a diff to specialist review checklists and consolidating their findings. Use to review a working tree, staged diff, branch, PR, or commit range and get severity-ranked findings instead of generic approval.
+description: Orchestrates high-signal, tool-neutral code review by risk-routing a diff to specialist review lenses and consolidating their findings. Use to review a working tree, staged diff, branch, PR, or commit range and get severity-ranked findings instead of generic approval.
 ---
 
 # Review Code: Orchestrator
@@ -9,7 +9,7 @@ Use this tool-neutral skill to coordinate a high-signal review of code changes.
 The active tool performs the work with the capabilities available in its
 environment. This skill is read-only: do not edit files, apply patches, commit,
 or produce generic approval language. For non-trivial changes, review through the
-relevant review checklists rather than giving a single undifferentiated opinion.
+relevant review lenses rather than giving a single undifferentiated opinion.
 
 Review target: the change the user asked you to review. If the user named none,
 resolve it as described under "Review target resolution".
@@ -37,67 +37,67 @@ checkout, or otherwise mutate the tree.
 1. Identify the review target.
 2. Inspect changed files and enough nearby code to infer intent.
 3. Build a risk profile of the change.
-4. Select only the relevant checklists (see Routing).
-5. Run each selected checklist as a subagent (see Execution).
-6. Wait for all selected checklist results.
+4. Select only the relevant lenses (see Routing).
+5. Run each selected lens as a subagent (see Execution).
+6. Wait for all selected lens results.
 7. Deduplicate findings.
 8. Drop speculative findings that lack concrete code evidence.
-9. Reclassify severity where the checklist over- or under-rated it.
+9. Reclassify severity where the lens over- or under-rated it.
 10. Run the verification pass over only the important candidates: P0/P1 candidates,
-    security findings, adversarial findings, or conflicting checklist conclusions.
+    security findings, adversarial findings, or conflicting lens conclusions.
 11. Produce one concise consolidated review.
 
 ## Execution
 
-This skill bundles every review checklist as a reference file under `references/`.
-Run each selected checklist as its own subagent review when your environment
+This skill bundles every review lens as a reference file under `references/`.
+Run each selected lens as its own subagent review when your environment
 supports subagents or parallel task spawning, so the reviews stay independent
-and do not contaminate each other's reasoning. For each selected checklist:
+and do not contaminate each other's reasoning. For each selected lens:
 
 1. Spawn one subagent with a focused task prompt naming the review target and scope.
-2. Instruct it to read this skill's `references/<topic>-checklist.md` **and**
+2. Instruct it to read this skill's `references/<topic>-lens.md` **and**
    `references/shared-rubric.md`, and to follow them as its review instructions.
 3. Instruct it to return concrete findings only, in the rubric's output format.
 
 Wait for all subagents, then consolidate.
 
 Some environments only spawn subagents when explicitly asked — in that case,
-explicitly request subagent spawning per selected checklist.
+explicitly request subagent spawning per selected lens.
 
 Fallback when subagents are unavailable: if your environment cannot spawn
-subagents, run the selected checklists yourself, sequentially — read
-`references/<topic>-checklist.md` and `references/shared-rubric.md` for each and apply
+subagents, run the selected lenses yourself, sequentially — read
+`references/<topic>-lens.md` and `references/shared-rubric.md` for each and apply
 them in turn, keeping each review's reasoning separate, before consolidating. This
-is lower-throughput but still covers every selected checklist at full depth,
+is lower-throughput but still covers every selected lens at full depth,
 because the reference files travel with this skill.
 
-If a `references/<topic>-checklist.md` or `references/shared-rubric.md` file cannot be read,
-the skill is installed incompletely: record the checklist under `## Review scope` →
-Checklists unavailable, recommend reinstalling `review-code`
-(`apm install -g kazukitcy/skills/review-code`), and do not claim that checklist was
+If a `references/<topic>-lens.md` or `references/shared-rubric.md` file cannot be read,
+the skill is installed incompletely: record the lens under `## Review scope` →
+Lenses unavailable, recommend reinstalling `review-code`
+(`apm install -g kazukitcy/skills/review-code`), and do not claim that lens was
 covered.
 
-## Available checklists
+## Available lenses
 
-Each checklist is a reference file under this skill's `references/` directory:
+Each lens is a reference file under this skill's `references/` directory:
 
-- `references/correctness-checklist.md`
-- `references/security-checklist.md`
-- `references/tests-checklist.md`
-- `references/design-checklist.md`
-- `references/performance-checklist.md`
-- `references/reliability-checklist.md`
-- `references/release-checklist.md`
-- `references/adversarial-checklist.md`
+- `references/correctness-lens.md`
+- `references/security-lens.md`
+- `references/tests-lens.md`
+- `references/design-lens.md`
+- `references/performance-lens.md`
+- `references/reliability-lens.md`
+- `references/release-lens.md`
+- `references/adversarial-lens.md`
 
-Every checklist also reads `references/shared-rubric.md` for the severity scale,
-evidence checklist, and output format.
+Every lens also reads `references/shared-rubric.md` for the scope discipline,
+severity scale, evidence requirements, and output format.
 
 ## Routing rules
 
-Do not run all checklists by default. Select by the kind of change:
+Do not run all lenses by default. Select by the kind of change:
 
-- docs/comment-only with no contract impact: no checklist.
+- docs/comment-only with no contract impact: no lens.
 - docs that change a public contract, API surface, or developer workflow
   (README, API docs, upgrade/migration guide): `release`, `tests`.
 - generated docs or API reference docs: `release`.
@@ -124,31 +124,32 @@ Do not run all checklists by default. Select by the kind of change:
 - config, feature flag, deploy order, rollback, observability:
   `release`, `reliability`, `tests`.
 - large cross-module change: `correctness`, `tests`, `design`, plus
-  risk-specific checklists.
+  risk-specific lenses.
 
 Augment by signal: even when a change looks like a normal application change, if
 the diff touches external input, persistence (DB/storage/migration), async or
-concurrency, or auth/permissions, add the matching checklist (`security`,
+concurrency, or auth/permissions, add the matching lens (`security`,
 `reliability`, `release`, or `adversarial`) for that signal.
 
-Run the verification pass only after checklist results exist and only when needed.
+Run the verification pass only after lens results exist and only when needed.
 
-## Checklist budget
+## Lens budget
 
-- trivial changes: 0 checklists
-- small code changes: ~2 checklists
-- normal code changes: ~3 checklists
-- high-risk changes: 4–5 checklists
-- critical or very large changes: up to 7 checklists, plus the verification pass when needed
+- trivial changes: 0 lenses
+- small code changes: ~2 lenses
+- normal code changes: ~3 lenses
+- high-risk changes: 4–5 lenses
+- critical or very large changes: up to 7 lenses, plus the verification pass when needed
 
-Do not launch checklists whose focus does not match the diff.
+Do not launch lenses whose focus does not match the diff.
 
 ## Severity
 
-- P0: immediate production outage, critical data loss, or critical security breach. Stop merge/deploy.
-- P1: blocking. Likely serious regression, auth bypass, data exposure, irreversible bad state, or unsafe migration.
-- P2: important but non-blocking. Fix before or shortly after merge.
-- P3: minor suggestion. Optional hardening, maintainability, or low-risk clarification.
+The severity scale (P0–P3) is defined once in `references/shared-rubric.md` and
+used by every lens and by this orchestrator. In short: P0 stops merge/deploy
+(outage, critical data loss, critical breach); P1 blocks (serious regression,
+auth bypass, data exposure, irreversible bad state, unsafe migration); P2 is
+important but non-blocking; P3 is a minor, unusually-high-value suggestion only.
 
 ## Finding quality bar
 
@@ -175,7 +176,7 @@ say so rather than manufacturing findings to fill a section.
 
 Before finalizing, run a verification pass over the important candidate findings
 only — P0/P1 candidates, security findings, adversarial findings, or conflicting
-checklist conclusions. Skip the pass entirely when no candidate meets that bar.
+lens conclusions. Skip the pass entirely when no candidate meets that bar.
 This is an internal step of the orchestrator, not a separate skill: it always has
 the candidate findings in hand, so it needs no standalone input contract.
 
@@ -189,7 +190,6 @@ For each such candidate, check:
 - Is the severity appropriate?
 - Is it duplicated by another finding?
 - Is there a smaller, more precise claim?
-- Is the suggested fix appropriate?
 - Does the finding imply second-order failures — empty-state behavior, retries,
   stale state, or rollback paths — that a fix must also address?
 
@@ -235,9 +235,9 @@ Only tests tied to changed behavior or reported findings.
 ## Review scope
 - Target:
 - Changed areas:
-- Checklists run:
-- Checklists skipped:
-- Checklists unavailable:
+- Lenses run:
+- Lenses skipped:
+- Lenses unavailable:
 
 ## Verification
 - Checks performed:
