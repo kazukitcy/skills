@@ -37,9 +37,12 @@ requiring the reviewer to reread or summarize the original source.
 - Mark synonym triggers as duplication.
 - Mark missing trigger branches when realistic user requests would not invoke the
   skill.
-- Check whether model invocation is worth the context load.
-- If the skill is intended for manual use only, check whether the target runtime
-  supports that mode and whether a router skill should mention it.
+- Confirm the invocation mode matches reach: model-invoked when the agent or
+  another skill must fire it and the context load is worth paying; user-invoked
+  when only the human will, where the runtime supports that mode.
+- For a user-invoked skill, confirm the description is a human-facing one-line
+  summary, check whether a router skill should name it, and treat deliberate
+  manual invocation as cognitive load spent on purpose, not a defect.
 
 Completion criterion: every intended branch is either triggerable or explicitly
 manual.
@@ -62,18 +65,24 @@ guessing the user's intent.
 - Mark vague steps that can finish without observable evidence.
 - Check whether later steps could pull the agent into premature completion.
 - Check whether steps are written as actions rather than background explanation.
+- If the skill is all reference, check for a stated exhaustiveness bar instead
+  of step criteria; do not mark the absence of steps as a defect.
 
 Completion criterion: each important step has an observable done condition and
-requires enough legwork.
+requires enough legwork, or, for a reference-only skill, the reference states
+its exhaustiveness bar.
 
 ## 6. Review Information Hierarchy
 
 - Separate content into steps, in-skill reference, disclosed reference, scripts,
   and assets.
-- Confirm core workflow stays in `SKILL.md`.
+- Confirm the core workflow, or the core rule set of a reference-only skill,
+  stays in `SKILL.md`.
 - Confirm branch-specific or bulky reference lives in `references/`.
 - Confirm each reference file has a context pointer in `SKILL.md` that says when
   to read it.
+- Confirm each concept's definition, rules, and caveats are co-located under
+  one heading rather than scattered across the file.
 - Confirm scripts and assets exist only when they improve repeatability,
   determinism, or reuse.
 
@@ -96,6 +105,8 @@ to shorten `SKILL.md`.
 - Check whether they are existing domain words or clearly defined local terms.
 - Mark invented terms that cost more explanation than they save.
 - Mark repeated explanations that a leading word should collapse.
+- Grade each leading word with the no-op test; replace a weak word with a
+  stronger one instead of dropping the technique.
 
 Completion criterion: leading words sharpen behavior and do not create new
 jargon debt.
@@ -104,6 +115,7 @@ jargon debt.
 
 - Search for duplicated rules across `SKILL.md` and `references/`.
 - Remove or flag no-op sentences that do not change behavior versus the default.
+- Settle contested no-ops by forward-testing the skill, not by debate.
 - Flag sediment: stale setup, old process notes, or obsolete runtime mechanics.
 - Flag sprawl after duplication and sediment are removed.
 - Keep attribution or license notes only when they carry legal or source-model
@@ -138,6 +150,15 @@ Open Questions
 Validation
 - ...
 ```
+
+Field meanings:
+
+- Severity: Blocker, Major, Minor, or Note.
+- Criterion: the rubric section violated.
+- Evidence: exact file and text or structure causing the problem.
+- Impact: how the issue affects invocation, execution, validation, or
+  maintenance.
+- Remedy: the smallest change that fixes the model failure.
 
 If there are no findings, say so and list remaining validation gaps or residual
 risk.

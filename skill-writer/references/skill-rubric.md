@@ -24,21 +24,38 @@ The evaluation model must preserve these concepts and relationships:
   context pointer.
 - Context load: model-visible descriptions spend attention on every turn.
 - Cognitive load: user-invoked skills make the human remember when to use them.
+  Not a cost to always minimize: it is the price of human agency, spent on
+  purpose where human judgment should gate the run.
+- Router skill: one user-invoked skill that names the other user-invoked skills
+  and when to reach for each.
+- Granularity: how finely capability is divided into skills; each extra skill
+  spends context load or cognitive load.
 - Branch: a distinct way the skill can be used.
 - Leading word: a compact concept that anchors invocation or execution.
 - Information hierarchy: steps and reference must sit at the right level.
-- Steps: ordered actions that carry the main workflow.
+- Steps: ordered actions that carry the main workflow. A skill can be all
+  steps, all reference, or both; a reference-only skill is a flat peer-set of
+  rules, not a defect.
 - Reference: material consulted on demand.
+- External reference: shared reference that lives outside any skill and that
+  several skills reach by pointer.
 - Context pointer: wording that tells the agent when to load hidden material.
 - Progressive disclosure: material moves behind pointers because only some
   branches need it.
-- Completion criterion: an observable condition that tells the agent a step is
-  done.
+- Co-location: a concept's definition, rules, and caveats sit together under
+  one heading instead of scattered across the file.
+- Completion criterion: an observable condition that tells the agent a unit of
+  work is done. Its clarity resists premature completion; its demand sets
+  legwork and binds flat reference through an exhaustiveness bar.
 - Legwork: the effort a step requires before it can honestly complete.
+- Post-completion steps: the visible later steps that pull attention toward
+  being done.
 - Premature completion: stopping a step before its real work is done.
 - Single source of truth: each behavioral rule has one authoritative home.
-- Duplication: the same meaning appears in more than one place.
-- Relevance: each line still bears on what the skill does.
+- Duplication: the same meaning appears in more than one place, inflating its
+  prominence past its real rank.
+- Relevance: each line still bears on what the skill does; a line loses it by
+  never bearing on the task or by going stale.
 - Sediment: stale layers remain because adding felt safer than removing.
 - No-op: a relevant instruction does not change behavior versus the default.
 - Sprawl: the skill is too long to read and maintain well, even if every line is
@@ -80,23 +97,36 @@ Remedy:
 Pass when the skill can be reached at the right time without crowding the agent's
 context unnecessarily.
 
+The description is the invocation axis. Keeping a model-facing description makes
+the skill model-invoked: the agent, other skills, and the user can all reach it,
+at a permanent context load. Disabling model invocation (for example
+`disable-model-invocation: true`, where the runtime supports it) makes the skill
+user-invoked: zero context load, but only the human can fire it — no other skill
+can — and the description becomes a human-facing one-line summary with trigger
+lists stripped.
+
 Check:
 
 - Does the description say what the skill does and name concrete trigger
   contexts?
 - Is each trigger a distinct branch rather than a synonym for the same branch?
 - Does the description front-load the skill's leading word or strongest trigger?
-- If the skill will only be used explicitly, does the target runtime support a
-  user-invoked or disabled-implicit-invocation mode?
-- Is the context load worth paying for autonomous model invocation?
+- Is the context load worth paying for autonomous model invocation, or should
+  the skill be user-invoked?
+- If the skill is user-invoked, is it certain that no other skill must reach
+  it?
 - If invocation is manual, is the cognitive load acceptable, or should a router
-  skill mention it?
+  skill name it?
+- Is manual invocation deliberate? When human judgment should gate the run,
+  cognitive load is spent on purpose; do not recommend model invocation just to
+  relieve it.
 
 Fail when the description is mostly identity, marketing, background, or repeated
 body content.
 
 Remedy:
 
+- Match the invocation mode to reach before polishing the description.
 - Rewrite the description around distinct triggers.
 - Collapse synonym triggers.
 - Split only when a branch needs independent invocation or another skill must
@@ -125,26 +155,37 @@ Remedy:
 
 ### 4. Information Hierarchy
 
-Pass when the agent sees the workflow first and reads deeper material only when
-the current branch needs it.
+Pass when the agent sees the primary tier first — the workflow when the skill
+has steps, the rule set when it is all reference — and reads deeper material
+only when the current branch needs it.
 
 Check:
 
-- Are core steps in `SKILL.md`?
-- Is reference material secondary to the workflow?
+- Are core steps, or the core rule set of a reference-only skill, in
+  `SKILL.md`?
+- When the skill has steps, is reference material secondary to them? In-file
+  reference that buries steps turns attending to them into a coin flip.
 - Is branch-specific material moved to `references/`?
 - Does each reference have a context pointer that says when to read it?
+- Are a concept's definition, rules, and caveats co-located under one heading
+  rather than scattered across the file?
+- Is reference shared by several skills kept in one home — an external
+  reference file or a reference skill — instead of copied into each?
 - Are scripts used for fragile or repeated operations that prose would make
   unreliable?
 - Are assets limited to reusable output materials?
 
-Fail when `SKILL.md` is a glossary, archive, or background essay instead of an
-action surface, or when required material is hidden behind a weak pointer.
+Fail when a skill with steps buries them under in-file reference, when required
+material is hidden behind a weak pointer, or when one concept's rules are
+scattered so reading one part misses its neighbors. Do not fail a
+reference-only skill for having no steps; a flat peer-set of rules is a fine
+arrangement.
 
 Remedy:
 
 - Inline material every branch needs.
 - Move branch-specific reference behind a stronger pointer.
+- Regroup scattered material under its concept's heading.
 - Add scripts only where deterministic execution matters.
 
 ### 5. Completion Criteria
@@ -152,21 +193,32 @@ Remedy:
 Pass when each important step has an observable done condition that demands
 enough legwork.
 
+A completion criterion has two axes. Clarity — can the agent tell done from
+not-done? — resists premature completion, and only bites when the skill has
+steps. Demand — how much the criterion requires — sets legwork and also binds
+flat reference: "every rule applied" gives a reference-only skill its
+exhaustiveness bar where "produce a change list" does not.
+
 Check:
 
 - Can the agent tell whether the step is done?
 - Does the criterion require the work that matters, not just a summary?
 - Could the agent stop early and still appear compliant?
-- Are later steps pulling attention away from the current step?
+- Are visible post-completion steps pulling attention away from the current
+  step?
+- If the skill is all reference, does it state an exhaustiveness bar?
 
 Fail when steps end with vague verbs such as "consider", "understand", "review",
-or "improve" without a checkable result.
+or "improve" without a checkable result, or when a reference-only skill never
+says how much of its reference a run must cover.
 
 Remedy:
 
-- Sharpen the completion criterion first.
-- If the criterion cannot be made sharp and premature completion is observed,
-  split the sequence so later work is hidden behind a real context boundary.
+- Sharpen the completion criterion first; it is local and cheap.
+- Only if the criterion is irreducibly fuzzy and the rush is actually observed,
+  split the sequence so later work is hidden behind a real context boundary — a
+  user-invoked hand-off or a subagent dispatch; an inline call leaves the later
+  steps in context and clears nothing.
 
 ### 6. Progressive Disclosure
 
@@ -194,12 +246,20 @@ Remedy:
 Pass when compact concepts anchor behavior without repeating the same meaning in
 many places.
 
+A leading word recruits priors the model already holds, so an existing word is
+free where a coined word pays its definition in tokens. Repeat it as a token,
+never as a re-explained sentence: repeating the word raises attention on
+purpose; repeating the meaning is duplication.
+
 Check:
 
 - Is there a short word or phrase the user, repo, or domain already uses?
 - Does repeating that word help invocation or execution?
 - Does the word replace several sentences of duplicated explanation?
-- Is the word strong enough to change behavior versus the default?
+- Is the word strong enough to change behavior versus the default? A weak
+  leading word ("be thorough" when the agent is already thorough) is a no-op.
+- Are there restatements elsewhere in the skill that a single leading word
+  could retire?
 
 Fail when the skill invents jargon that needs more explanation than it saves, or
 when a repeated word is just decoration.
@@ -208,6 +268,8 @@ Remedy:
 
 - Prefer existing domain language.
 - Define a coined term only if it becomes shorter and sharper after definition.
+- Replace a weak leading word with a stronger one ("thorough" to "relentless")
+  rather than abandoning the technique.
 - Delete repeated explanations once the leading word carries them.
 
 ### 8. Pruning
@@ -229,7 +291,10 @@ survives because removing it feels risky.
 
 Remedy:
 
-- Delete no-op sentences instead of polishing them.
+- Run the no-op test sentence by sentence and delete the failing sentence
+  whole; most prose that fails should go, not be rewritten.
+- The no-op test is model-relative: settle a contested no-op by forward-testing
+  the skill, not by debate.
 - Keep one authoritative location for each rule.
 - Move live but branch-specific material behind pointers.
 - Split by invocation or sequence only when the split reduces context or
@@ -271,14 +336,15 @@ The rubric must catch these failures:
   behavior.
 - Stale setup text left after the workflow changed.
 - A correct but oversized skill that should be split or disclosed by branch.
+- A reference-only skill marked as failing because it has no steps.
+- One concept's definition, rules, and caveats scattered across distant
+  sections.
+- A weak leading word kept because it is relevant, even though it changes
+  nothing versus the default.
+- A user-invoked skill converted to model invocation only to relieve cognitive
+  load, removing a human gate that was there on purpose.
 
 ## Finding Format
 
-When applying this rubric, report findings in this shape:
-
-- Severity: Blocker, Major, Minor, or Note.
-- Criterion: the rubric section violated.
-- Evidence: exact file and text or structure causing the problem.
-- Impact: how the issue affects invocation, execution, validation, or
-  maintenance.
-- Remedy: the smallest change that fixes the model failure.
+Report findings in the output format defined in
+`references/review-checklist.md`.
