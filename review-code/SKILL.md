@@ -8,8 +8,13 @@ description: Review code changes — a working tree, staged diff, branch, PR, or
 Use this tool-neutral skill to coordinate a high-signal review of code changes.
 The active tool performs the work with the capabilities available in its
 environment. This skill is read-only: do not edit files, apply patches, commit,
-or produce generic approval language. For non-trivial changes, review through the
-relevant review lenses rather than giving a single undifferentiated opinion.
+or produce generic approval language.
+
+What a finding is — scope discipline, required evidence, the P0–P3 severity
+scale, confidence rule, calibration, false-positive precedents, and the
+per-finding output schema — is defined once in `references/shared-rubric.md`.
+This file does not restate it. Every lens reads it; read it yourself before
+consolidating.
 
 Review target: the change the user asked you to review. If the user named none,
 resolve it as described under "Review target resolution".
@@ -32,58 +37,28 @@ state, in this order, using the matching read-only command:
 Use version-control commands for **inspection only** — never stage, commit, stash,
 checkout, or otherwise mutate the tree.
 
-## Orchestrator responsibilities
+## Orchestrator workflow
 
-1. Identify the review target.
+1. Identify the review target (above).
 2. Establish the change's stated intent — the task the user gave, the PR/issue/
    plan text, or the commit messages (see `references/intent-lens.md` →
-   "Establishing intent") — and inspect changed files and enough nearby code to
-   understand it. If no stated intent exists, infer it from the diff and note that.
-3. Build a risk profile: match the change against the change kinds and signals
-   under "Routing rules"; the matched kinds and signals are the profile.
-4. Select only the relevant lenses (see Routing).
-5. Run each selected lens as a subagent (see Execution).
-6. Wait for all selected lens results.
-7. Deduplicate findings.
-8. Drop speculative findings that lack concrete code evidence.
-9. Reclassify severity where the lens over- or under-rated it.
-10. Run the independent refutation pass over only the important candidates: P0/P1
-    candidates, security findings, adversarial findings, or conflicting lens
-    conclusions (see "Verifying important findings").
-11. Produce one concise consolidated review.
-
-## Execution
-
-This skill bundles every review lens as a reference file under `references/`.
-Run each selected lens as its own subagent review when your environment
-supports subagents or parallel task spawning, so the reviews stay independent
-and do not contaminate each other's reasoning. For each selected lens:
-
-1. Spawn one subagent with a focused task prompt naming the review target and scope.
-2. Instruct it to read this skill's `references/<topic>-lens.md`,
-   `references/shared-rubric.md`, **and**
-   `references/false-positive-precedents.md`, and to follow them as its review
-   instructions.
-3. Instruct it to return concrete findings only, in the rubric's output format.
-
-Wait for all subagents, then consolidate.
-
-Some environments only spawn subagents when explicitly asked — in that case,
-explicitly request subagent spawning per selected lens.
-
-Fallback when subagents are unavailable: if your environment cannot spawn
-subagents, run the selected lenses yourself, sequentially — read
-`references/<topic>-lens.md`, `references/shared-rubric.md`, and
-`references/false-positive-precedents.md` for each and apply them in turn, keeping
-each review's reasoning separate, before consolidating. This
-is lower-throughput but still covers every selected lens at full depth,
-because the reference files travel with this skill.
-
-If a `references/<topic>-lens.md` or `references/shared-rubric.md` file cannot be read,
-the skill is installed incompletely: record the lens under `## Review scope` →
-Lenses unavailable, recommend reinstalling `review-code`
-(`apm install -g kazukitcy/skills/review-code`), and do not claim that lens was
-covered.
+   "Establishing intent"). If no stated intent exists, infer it from the diff
+   and note that.
+3. Read the diff and its context: for each changed symbol, read at least its
+   enclosing definition and one hop of the callers or callees the change
+   affects. Done when you can state what each changed file contributes to the
+   intent.
+4. Select lenses using "Routing" below.
+5. Run each selected lens as a subagent (see "Execution") and wait for every
+   selected lens's result.
+6. Consolidate: deduplicate findings, drop speculative findings that lack
+   concrete code evidence, reclassify severity where a lens over- or
+   under-rated it, and re-apply the shared rubric's "Final check" to each
+   surviving finding.
+7. Run the independent refutation pass over only the important candidates:
+   P0/P1 candidates, security findings, adversarial findings, or conflicting
+   lens conclusions (see "Verifying important findings").
+8. Produce one concise consolidated review in the "Final output format".
 
 ## Available lenses
 
@@ -100,13 +75,19 @@ Each lens is a reference file under this skill's `references/` directory:
 - `references/intent-lens.md`
 
 Every lens also reads `references/shared-rubric.md` for the scope discipline,
-severity scale, evidence requirements, and output format, and
-`references/false-positive-precedents.md` for the cross-lens exclusions and
-precedents that keep findings high-signal.
+severity scale, evidence requirements, false-positive precedents, and output
+format.
 
-## Routing rules
+## Routing
 
-Do not run all lenses by default. Select by the kind of change:
+Do not run all lenses by default. Select lenses in three steps, then check the
+budget:
+
+**1. Match the change kind** (a composite change can match several rows; take
+the union). Match a row by the change's dominant risk, not by keyword alone —
+a pure logic fix that happens to touch pagination math is a "small pure logic
+change", not a "hot path" change, unless performance behavior is actually at
+stake.
 
 - docs/comment-only with no contract impact: no lens.
 - docs that change a public contract, API surface, or developer workflow
@@ -137,62 +118,53 @@ Do not run all lenses by default. Select by the kind of change:
 - large cross-module change: `correctness`, `tests`, `design`, plus
   risk-specific lenses.
 
-Augment by signal: even when a change looks like a normal application change, if
-the diff touches external input, persistence (DB/storage/migration), async or
-concurrency, or auth/permissions, add the matching lens (`security`,
+**2. Augment by signal:** even when a change looks like a normal application
+change, if the diff touches external input, persistence (DB/storage/migration),
+async or concurrency, or auth/permissions, add the matching lens (`security`,
 `reliability`, `release`, or `adversarial`) for that signal.
 
-Route the `intent` lens by stated purpose, not by change kind — the rows above
+**3. Add `intent` by stated purpose, not change kind** — the rows above
 deliberately omit it. Run it for any change that has a stated purpose (a review
 task, a PR/issue/plan, or commit messages), so unimplemented requirements and
 scope creep are caught. Skip it only for trivial docs- or comment-only changes,
 or when no stated intent exists and one cannot be inferred.
 
-Run the verification pass only after lens results exist and only when needed.
+**Budget guardrail:** trivial changes 0 lenses; small 2–3; normal 3–4;
+high-risk 4–6; critical or very large up to 8. Count `intent` within these
+budgets rather than on top of them. The budget guards against padding, not
+against a matched risk lens — when the steps above select more lenses than the
+budget suggests, the selection wins. Do not launch lenses whose focus does not
+match the diff.
 
-## Lens budget
+## Execution
 
-- trivial changes: 0 lenses
-- small code changes: 2–3 lenses
-- normal code changes: 3–4 lenses
-- high-risk changes: 4–6 lenses
-- critical or very large changes: up to 8 lenses, plus the verification pass when needed
+Run each selected lens as its own subagent review when your environment
+supports subagents or parallel task spawning, so the reviews stay independent
+and do not contaminate each other's reasoning. For each selected lens:
 
-The `intent` lens is low-cost and commonly runs alongside the others; count it
-within these budgets rather than on top of them. When the routing rules select
-more lenses than the budget suggests, the routing selection wins — the budget
-guards against padding, not against a matched risk lens.
+1. Spawn one subagent with a focused task prompt naming the review target and scope.
+2. Instruct it to read this skill's `references/<topic>-lens.md` **and**
+   `references/shared-rubric.md`, and to follow them as its review
+   instructions.
+3. Instruct it to return concrete findings only, in the rubric's output format.
 
-Do not launch lenses whose focus does not match the diff.
+Wait for all subagents, then consolidate.
 
-## Severity
+Some environments only spawn subagents when explicitly asked — in that case,
+explicitly request subagent spawning per selected lens.
 
-The severity scale (P0–P3) is defined once in `references/shared-rubric.md` and
-used by every lens and by this orchestrator. In short: P0 stops merge/deploy
-(outage, critical data loss, critical breach); P1 blocks (serious regression,
-auth bypass, data exposure, irreversible bad state, unsafe migration); P2 is
-important but non-blocking; P3 is a minor, unusually-high-value suggestion only.
+Fallback when subagents are unavailable: run the selected lenses yourself,
+sequentially — read `references/<topic>-lens.md` and
+`references/shared-rubric.md` for each and apply them in turn, keeping each
+review's reasoning separate, before consolidating. This is lower-throughput but
+still covers every selected lens at full depth, because the reference files
+travel with this skill.
 
-## Finding quality bar
-
-A final finding must have: location, code evidence, a failure/exploit/regression/
-rollout path, impact, and a minimal fix or test idea. Drop or downgrade findings
-that are: generic best practices; style-only; speculative without code evidence;
-already prevented by existing guards, tests, constraints, or framework behavior; or
-outside the actual diff risk.
-
-Before keeping any finding, confirm: (1) caused by the diff, (2) has a concrete
-runtime path, (3) has code evidence, (4) has meaningful impact, (5) is not already
-prevented, (6) a human reviewer would plausibly block or request changes. If 1–4
-are not all yes, do not make it a final finding. If 5 is no, reject or downgrade. If
-6 is no, demote to P3 or Notes.
-
-## Calibration
-
-Prefer one strong, well-evidenced finding over several weak ones. Do not dilute a
-P0/P1 finding by surrounding it with low-value P3s or restated framework
-guarantees. A short, high-signal review beats a long one: when a lens is clean,
-say so rather than manufacturing findings to fill a section.
+If a `references/<topic>-lens.md` or `references/shared-rubric.md` file cannot
+be read, the skill is installed incompletely: record the lens under
+`## Review scope` → Lenses unavailable, recommend reinstalling `review-code`
+(`apm install -g kazukitcy/skills/review-code`), and do not claim that lens was
+covered.
 
 ## Verifying important findings
 
@@ -220,8 +192,8 @@ For each candidate, the refutation checks:
 - Is the failure, exploit, regression, or rollout path plausible and reachable?
 - Is the stated impact accurate, or over- or under-stated?
 - Do existing guards, tests, constraints, middleware, policies, feature flags,
-  framework behavior, or a `references/false-positive-precedents.md` precedent
-  already prevent or settle it?
+  framework behavior, or a shared-rubric false-positive precedent already
+  prevent or settle it?
 - Is the severity appropriate?
 - Is it duplicated by another finding?
 - Is there a smaller, more precise claim?
@@ -287,3 +259,8 @@ Only tests tied to changed behavior or reported findings.
 
 ## Notes
 Assumptions, unreviewed areas, or limitations.
+
+**Compact form:** when the review ran 0 or 1 lens and produced no P0/P1
+findings, you may return only `## P0/P1 blocking findings` (`None`), any
+non-empty findings sections, `## Summary`, and `## Review scope`, and omit the
+rest.

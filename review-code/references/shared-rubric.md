@@ -3,8 +3,8 @@
 Every `review-code` lens shares this rubric. A lens reference file
 (`references/<topic>-lens.md`) defines what that lens looks for; this file defines
 the scope discipline, required evidence, severity scale, confidence rule,
-calibration, final check, and output format every lens uses. Read the lens file,
-this rubric, and `references/false-positive-precedents.md` before reviewing.
+calibration, false-positive precedents, final check, and output format every
+lens uses. Read the lens file and this rubric in full before reviewing.
 
 This review is read-only: do not edit files, apply patches, or commit. Review
 target and context: the change and scope the user asked you to review (e.g.
@@ -16,7 +16,14 @@ Applies to every lens:
 
 - Report only what **this change** introduces or makes newly reachable. A
   pre-existing issue in untouched code is out of scope; note it at most under
-  Notes, never as a finding blamed on the change.
+  Notes, never as a finding blamed on the change. When reviewing a branch, a
+  pre-existing issue in a *touched* file may be noted but must be tagged as
+  pre-existing.
+- Behavior the diff intentionally changes, consistent with its stated purpose,
+  is not a finding.
+- Do not report a path already made impossible by an upstream guard, type,
+  framework-validated input, or documented decision (ADR) — confirm the guard
+  exists before reporting.
 - Review only this lens's concern; leave other concerns to their lens.
 - Do not report generic best practices.
 - Do not report style-only issues unless they hide a concrete defect.
@@ -25,9 +32,9 @@ Applies to every lens:
   occur (over-engineering). A reviewer prompted to find gaps will report some even
   when the work is sound — report only gaps that affect correctness or the
   change's stated intent, and treat optional improvements as P3.
-- Honor `references/false-positive-precedents.md`: do not report a finding a
-  precedent there already settles unless the diff deviates from the safe pattern
-  it assumes.
+- Honor the "False-positive precedents" section below: do not report a finding
+  a precedent there already settles unless the diff deviates from the safe
+  pattern it assumes.
 
 ## Required evidence
 
@@ -62,6 +69,70 @@ Prefer one strong, well-evidenced finding over several weak ones. Do not dilute
 serious findings with filler, restated guards, or speculation. If the change is
 clean for this lens, say so and report no findings rather than padding the list.
 
+## False-positive precedents
+
+Cross-lens precedents: patterns that repeatedly produce noisy, low-value
+findings. Do not report a finding a precedent here already settles — **unless
+the diff shows the code deviating from the safe pattern the precedent
+assumes**, in which case report the deviation.
+
+Precedents override a generic suspicion, not concrete evidence. If you have a
+specific, reachable failure/exploit path with code evidence, a precedent does
+not silence it — reconcile the two in the finding. Each lens's own
+`## Common false positives` still applies on top of this list.
+
+### Hard exclusions
+
+Do not raise these as findings under any lens (mention at most under Notes if
+genuinely relevant to the change's purpose):
+
+- Denial of service, resource/memory/CPU exhaustion, or missing rate limiting —
+  unless limiting that resource is the change's stated purpose.
+- Theoretical race conditions with no concrete interleaving and no shared mutable
+  state reachable by the change. A real, reachable race goes to the reliability
+  lens with its interleaving path.
+- Outdated third-party dependency versions, absent a known-exploitable path in the
+  usage this change introduces. Dependency upgrades are their own review.
+- Memory-safety issues (buffer overflow, use-after-free) in memory-safe languages.
+- Log spoofing / log injection with no downstream sink that interprets the log.
+- Regex denial-of-service or regex injection unless an attacker controls the
+  pattern itself on a hot path.
+- Findings in test-only, fixture, example, or documentation files — unless the
+  change ships those artifacts to production or they encode a real credential.
+- Missing audit logs, missing metrics, or generic defense-in-depth with no
+  concrete exploit or failure path (at most a P3, usually Notes).
+
+### Trust & identity precedents
+
+- UUIDs and cryptographically random tokens are unguessable. Do not assume
+  enumeration or brute force unless the identifier is sequential, short, or
+  otherwise predictable.
+- Environment variables, CLI flags, and operator-managed config files are trusted
+  inputs (operator-controlled), not attacker-controlled input.
+- Server-to-server internal calls and server-only values are not an untrusted
+  boundary. A trust-boundary finding needs user/attacker-controlled data actually
+  reaching the sink.
+- Honoring standard platform conventions is expected behavior, not a
+  vulnerability: proxy variables (`https_proxy`/`HTTP_PROXY`/`NO_PROXY`), reading
+  `~/.netrc`, or a local dev tool shelling out to a configured package manager.
+
+### Framework & platform precedents
+
+- Auto-escaping template and view frameworks (React, Angular, Vue, and most
+  server-side template engines) are XSS-safe by default. Report XSS only when the
+  change uses an explicit escape hatch — `dangerouslySetInnerHTML`,
+  `bypassSecurityTrustHtml`, a `| safe`/`raw` filter, or hand-built HTML strings
+  — or otherwise bypasses the framework's escaping.
+- A lack of authentication or authorization in client-side code is not, by
+  itself, a vulnerability — enforcement belongs on the server. Report the missing
+  server-side check, not the missing client-side one.
+- Parameterized queries and prepared statements are injection-safe. Report
+  injection only for raw or string-concatenated query fragments built from
+  untrusted input.
+- Framework-default protections already cover a route unless the change opts out:
+  CSRF middleware, `SameSite` cookie defaults, output encoding. Confirm the change
+  actually disables or bypasses the default before reporting its absence.
+
 ## Final check
 
 Before returning, re-read each finding and confirm it is:
@@ -69,7 +140,9 @@ Before returning, re-read each finding and confirm it is:
 - tied to a concrete code location in or near the change,
 - plausible under a real runtime, exploit, regression, or rollout scenario,
 - not already prevented by an existing guard, test, constraint, or framework behavior,
-- actionable, with a fix or test specific enough to act on.
+- actionable, with a fix or test specific enough to act on,
+- serious enough that a human reviewer would plausibly block or request changes
+  over it — if not, demote it to P3 or Notes.
 
 Drop or downgrade any finding that fails a check. After the first issue, also
 check for second-order failures, empty-state and boundary behavior, and follow-on
