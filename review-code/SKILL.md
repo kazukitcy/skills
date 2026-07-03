@@ -1,6 +1,6 @@
 ---
 name: review-code
-description: Orchestrates high-signal, tool-neutral code review by risk-routing a diff to specialist review lenses and consolidating their findings. Use to review a working tree, staged diff, branch, PR, or commit range and get severity-ranked findings instead of generic approval.
+description: Review code changes — a working tree, staged diff, branch, PR, or commit range — by risk-routing the diff to specialist review lenses and consolidating severity-ranked findings instead of generic approval. Tool-neutral orchestrator; runs each selected lens as a subagent where available.
 ---
 
 # Review Code: Orchestrator
@@ -39,7 +39,8 @@ checkout, or otherwise mutate the tree.
    plan text, or the commit messages (see `references/intent-lens.md` →
    "Establishing intent") — and inspect changed files and enough nearby code to
    understand it. If no stated intent exists, infer it from the diff and note that.
-3. Build a risk profile of the change.
+3. Build a risk profile: match the change against the change kinds and signals
+   under "Routing rules"; the matched kinds and signals are the profile.
 4. Select only the relevant lenses (see Routing).
 5. Run each selected lens as a subagent (see Execution).
 6. Wait for all selected lens results.
@@ -115,7 +116,7 @@ Do not run all lenses by default. Select by the kind of change:
   content warrants.
 - test-only: `tests`.
 - small pure logic change: `correctness`, `tests`.
-- normal application change: `correctness`, `tests`, `design`, `intent`.
+- normal application change: `correctness`, `tests`, `design`.
 - public API, SDK, schema, or event contract: add `release`.
 - auth, authorization, role, permission, or tenant boundary:
   `correctness`, `security`, `tests`, `adversarial`.
@@ -141,23 +142,26 @@ the diff touches external input, persistence (DB/storage/migration), async or
 concurrency, or auth/permissions, add the matching lens (`security`,
 `reliability`, `release`, or `adversarial`) for that signal.
 
-Run the `intent` lens for any change that has a stated purpose (a review task, a
-PR/issue/plan, or commit messages), so unimplemented requirements and scope creep
-are caught. Skip it only for trivial docs- or comment-only changes, or when no
-stated intent exists and one cannot be inferred.
+Route the `intent` lens by stated purpose, not by change kind — the rows above
+deliberately omit it. Run it for any change that has a stated purpose (a review
+task, a PR/issue/plan, or commit messages), so unimplemented requirements and
+scope creep are caught. Skip it only for trivial docs- or comment-only changes,
+or when no stated intent exists and one cannot be inferred.
 
 Run the verification pass only after lens results exist and only when needed.
 
 ## Lens budget
 
 - trivial changes: 0 lenses
-- small code changes: ~2 lenses
-- normal code changes: ~3 lenses
-- high-risk changes: 4–5 lenses
+- small code changes: 2–3 lenses
+- normal code changes: 3–4 lenses
+- high-risk changes: 4–6 lenses
 - critical or very large changes: up to 8 lenses, plus the verification pass when needed
 
 The `intent` lens is low-cost and commonly runs alongside the others; count it
-within these budgets rather than on top of them.
+within these budgets rather than on top of them. When the routing rules select
+more lenses than the budget suggests, the routing selection wins — the budget
+guards against padding, not against a matched risk lens.
 
 Do not launch lenses whose focus does not match the diff.
 

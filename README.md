@@ -38,7 +38,7 @@ apm install -g kazukitcy/skills/<skill-name>#v0.1.0
 
 `review-code` is a single skill: an orchestrator that risk-routes a diff to the
 relevant review checklists (correctness, security, tests, design, performance,
-reliability, release, adversarial), runs each as a subagent over a bundled
+reliability, release, adversarial, intent), runs each as a subagent over a bundled
 reference file under `review-code/references/`, and consolidates severity-ranked
 findings.
 
