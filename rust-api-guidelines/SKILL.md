@@ -1,6 +1,6 @@
 ---
 name: rust-api-guidelines
-description: Applies the Rust API Guidelines to review, design, document, and refactor public Rust APIs. Use when auditing a crate or PR, shaping naming, conversions, trait impls, error types, builders, rustdoc, Cargo metadata, public macros, or citing guideline IDs like C-GETTER, C-GOOD-ERR, or C-BUILDER. Do not use for general Rust debugging, private implementation cleanup, or performance work unless public API design is in scope.
+description: Applies the Rust API Guidelines to review, design, document, and refactor Rust API surfaces. Use when reviewing the API surface of a Rust crate — library, application, or workspace-internal crate — or of a PR, assessing semver or breaking-change risk, preparing a crate for publishing to crates.io, designing or naming public types, module boundaries, conversions, trait impls, error types, constructors, builders, rustdoc, Cargo metadata, or public macros, or when guideline IDs like C-GETTER, C-GOOD-ERR, or C-BUILDER are cited. Do not use for general Rust debugging, private implementation cleanup, or performance work with no API-surface change.
 ---
 
 # Rust API Guidelines
@@ -9,7 +9,7 @@ description: Applies the Rust API Guidelines to review, design, document, and re
 
 Use this skill to evaluate public Rust APIs against the Rust API Guidelines.
 
-The Rust API Guidelines are recommendations for designing and presenting Rust APIs, not as a mandate. They are most useful for public library APIs where caller ergonomics, interoperability, documentation, and semver stability matter.
+The Rust API Guidelines are recommendations for designing and presenting Rust APIs, not as a mandate. They are most useful for public library APIs where caller ergonomics, interoperability, documentation, and semver stability matter. They also apply to application and workspace-internal crates at their crate and module boundaries: any items consumed across a boundary count as API surface, though semver and publishing guidance carries less weight there.
 
 The upstream material is organized as a checklist of individual guidelines plus topical chapters with detailed explanations. Use the vendored files under `references/` as the working source of truth.
 
@@ -17,7 +17,7 @@ The upstream material is organized as a checklist of individual guidelines plus 
 
 Use this skill when the task includes at least one of these:
 
-- Reviewing or designing public Rust crate APIs, public modules, public types, public traits, public functions, or public macros.
+- Reviewing or designing Rust API surfaces: public crate APIs, public modules, public types, public traits, public functions, public macros, or the crate and module boundaries of application or workspace-internal crates.
 - Reviewing a Rust PR for API ergonomics, semver risk, documentation quality, or crate publishability.
 - Improving Rust API naming, conversion methods, trait implementations, error types, constructors, builders, rustdoc, Cargo metadata, feature names, or public dependency exposure.
 - Citing Rust API Guidelines IDs such as `C-GETTER`, `C-GOOD-ERR`, or `C-BUILDER`.
@@ -31,8 +31,8 @@ Do not use this skill when the task is only about:
 
 ## Workflow
 
-1. Identify the public API surface first. Inspect exported modules, `pub` items, public traits, public macros, public re-exports, `Cargo.toml`, crate docs, README, changelog, and release notes as applicable.
-2. If no public API surface is involved, stop using this skill and continue with normal Rust engineering guidance.
+1. Identify the API surface first. Inspect exported modules, `pub` items, public traits, public macros, public re-exports, `Cargo.toml`, crate docs, README, changelog, and release notes as applicable. In application or workspace crates, the surface is the set of items consumed across crate or module boundaries.
+2. If no API surface is involved — nothing is consumed across a crate or module boundary — stop using this skill and continue with normal Rust engineering guidance.
 3. Read [references/checklist.md](references/checklist.md). Assign each relevant guideline one status: `PASS`, `FAIL`, `N/A`, or `INFER`.
 4. Load deeper category chapters only for categories that are relevant to the inspected API surface.
 5. Check semver impact before recommending a change. For already-published stable APIs, prefer additive or documentation-only fixes unless the user explicitly requests a breaking redesign.
