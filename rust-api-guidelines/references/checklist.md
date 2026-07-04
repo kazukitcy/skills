@@ -3,10 +3,11 @@
 ## How to use this checklist
 
 1. Review only public Rust API surface: exported modules, `pub` items, public traits, public macros, crate docs, Cargo metadata, and release-facing docs.
-2. For each applicable item, record one status: `PASS`, `FAIL`, `N/A`, or `INFER`.
-3. Use `INFER` only when the likely conclusion is not directly verified by code, rustdoc, tests, metadata, or compile-time checks.
-4. For every `FAIL` or material `INFER`, cite the guideline ID, the code evidence, caller impact, semver risk, and the smallest viable fix.
-5. Read the listed Deep reference only when exact upstream wording, rationale, or examples are needed.
+2. Apply every category to every public crate unless its `Applies when` note excludes it; mark excluded categories or items `N/A`.
+3. For each applicable item, record one status: `PASS`, `FAIL`, `N/A`, or `INFER`.
+4. Use `INFER` only when the likely conclusion is not directly verified by code, rustdoc, tests, metadata, or compile-time checks.
+5. For every `FAIL` or material `INFER`, cite the guideline ID, the code evidence, caller impact, semver risk, and the smallest viable fix.
+6. Read the listed Deep reference only when exact upstream wording, rationale, or examples are needed.
 
 ## Naming
 
@@ -26,6 +27,8 @@ Deep reference: `references/naming.md`.
 
 Deep reference: `references/interoperability.md`.
 
+Applies when: every public crate. `C-SERDE` applies only when public data structures are plausibly serialized or deserialized by users. For APIs that cross threads, tasks, callbacks, FFI, or async runtimes, explicitly check `Send` / `Sync`, unwind and panic behavior, reentrancy, cancellation or drop semantics, and whether those contracts are documented or compile-time tested.
+
 | Guideline | AI review action | Evidence to inspect |
 | --- | --- | --- |
 | [C-COMMON-TRAITS](interoperability.md#c-common-traits) | Check public types implement obvious common traits. | `Copy`, `Clone`, `Eq`, `PartialEq`, `Ord`, `PartialOrd`, `Hash`, `Debug`, `Display`, `Default`. |
@@ -41,6 +44,8 @@ Deep reference: `references/interoperability.md`.
 
 Deep reference: `references/macros.md`.
 
+Applies when: the crate exposes public macros; otherwise mark the category `N/A`.
+
 | Guideline | AI review action | Evidence to inspect |
 | --- | --- | --- |
 | [C-EVOCATIVE](macros.md#c-evocative) | Check macro input syntax resembles the generated output. | Public macro examples and pattern syntax. |
@@ -52,6 +57,8 @@ Deep reference: `references/macros.md`.
 ## Documentation
 
 Deep reference: `references/documentation.md`.
+
+Applies when: every public crate. `C-METADATA` and `C-RELNOTES` apply only to publishable crates, release reviews, or repository-readiness tasks.
 
 | Guideline | AI review action | Evidence to inspect |
 | --- | --- | --- |
@@ -81,6 +88,8 @@ Deep reference: `references/predictability.md`.
 ## Flexibility
 
 Deep reference: `references/flexibility.md`.
+
+Applies when: every public crate. `C-OBJECT` applies only when a trait could realistically be used as `dyn Trait`.
 
 | Guideline | AI review action | Evidence to inspect |
 | --- | --- | --- |
@@ -133,6 +142,8 @@ Deep reference: `references/future-proofing.md`.
 ## Necessities
 
 Deep reference: `references/necessities.md`.
+
+Applies when: publishable crates, release reviews, or repository-readiness tasks; otherwise mark the category `N/A`.
 
 | Guideline | AI review action | Evidence to inspect |
 | --- | --- | --- |
