@@ -45,6 +45,17 @@ intent you inferred from the same diff.
 - Acceptance-criteria gaps: explicit acceptance criteria or a checklist in the
   intent with no evidence in the change that they are met (route "no test" to the
   tests lens; flag here a criterion neither implemented nor addressed).
+- Blocking deferral: the intent explicitly defers work to a follow-up ("auth in
+  PR 2", "validation later") but the diff already exposes the surface or writes
+  the data that makes the deferred work non-optional now — a new route reachable
+  before the promised auth, a field written before the promised validation, a
+  half-applied data change. This overrides the "deliberately partial change"
+  false positive below.
+- Missing intent on a substantive change: a diff touching multiple subsystems or
+  changing a data/event shape with no PR description, linked issue, or
+  explanatory commit message. Report as a P3 prompting the author to add
+  rationale — without stated intent, requirement conformance cannot be verified
+  and this lens should say so rather than stay silent.
 
 ## High-signal locations
 
@@ -53,6 +64,11 @@ intent you inferred from the same diff.
 - New files or large hunks with no obvious tie to any stated requirement.
 - Requirements about error handling, limits, or edge cases — easy to state in the
   intent and easy to skip in the code.
+- A change labeled "refactor", "cleanup", "rename", or "no behavior change":
+  verify the diff really has none — altered return values or defaults, removed
+  or relaxed validation, reordered error handling, changed branching. A behavior
+  change under a refactor label is a contradiction finding even when it looks
+  low-risk; the label suppresses scrutiny exactly when it should trigger it.
 
 ## Common false positives
 
@@ -65,7 +81,9 @@ Do not report these:
 - Intent inferred from the diff and then "checked" against itself — if you had to
   infer intent, do not raise unimplemented-requirement findings.
 - A deliberately partial change the intent itself scopes as such ("first of N
-  PRs", "wiring only, behavior in a follow-up").
+  PRs", "wiring only, behavior in a follow-up") — unless the partial state
+  already exposes an unguarded surface or irreversible effect (see "Blocking
+  deferral" above, which takes precedence).
 
 ## Severity anchors
 

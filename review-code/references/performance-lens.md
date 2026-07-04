@@ -17,10 +17,10 @@
 
 - N+1 and per-item I/O: a query, fetch, or RPC issued per item inside a loop or per list/rendered row; a missing batch, join, `IN`-query, or dataloader where the access pattern plainly calls for one.
 - Algorithmic complexity: nested scans over the same collection (O(n²)); a `find`/`filter`/`includes` inside a hot loop where a `Map`/`Set` keyed lookup belongs; sorting or de-duping repeatedly instead of once; growth driven by user-controlled size.
-- Repeated work: an identical expensive computation, fetch, or (de)serialization repeated per request/render instead of computed once and reused; missing memoization at a clear, pure function boundary.
-- Caching mistakes: a wrong or overly-broad cache key; a cache never invalidated when its source changes (staleness) or invalidated too aggressively (thrash); user-specific data cached under a shared key.
+- Repeated work: an identical expensive computation, fetch, or (de)serialization repeated per request/render instead of computed once and reused; missing memoization at a clear, pure function boundary; a connection pool, DB/HTTP/SDK client constructed per request or per call instead of once at process init (the error-path *leak* of a pooled connection belongs to reliability).
+- Caching mistakes: a wrong or overly-broad cache key; a cache never invalidated when its source changes (staleness) or invalidated too aggressively (thrash); user-specific data cached under a shared key; a get→miss→expensive-recompute→set fill on a hot path with no coalescing (singleflight, fill lock, stale-while-revalidate), so expiry makes every concurrent request recompute at once — report only with evidence the path is hot and the fill expensive.
 - Payload & data shape: over-fetching full rows/objects when IDs or a few fields suffice (`SELECT *`); missing pagination or limits on an unbounded list/scan; large JSON or blobs shipped to the client; unbounded in-memory accumulation.
-- Database access: a query filter or sort that cannot use an index (leading wildcard, function on the column, type mismatch) — flag for verification with schema evidence, don't assert; a transaction held open across slow work.
+- Database access: a query filter or sort that cannot use an index (leading wildcard, function on the column, type mismatch) — flag for verification with schema evidence, don't assert; a transaction held open across slow work; a new cache, shard, or partition key that is constant or low-cardinality under high volume (a global counter key, one dominant tenant), funneling all traffic to one node or slot — needs a stated traffic path, not just the key shape.
 - Latency-path hazards: blocking synchronous or CPU-heavy work on a request/render path; excessive logging or serialization in a hot path; an added await that serializes calls which could run concurrently.
 - Frontend (if applicable): a heavyweight dependency pulled in for trivial use; client-side fetching of data available at render time; a render path that recomputes or re-fetches on every keystroke/scroll.
 
@@ -39,6 +39,7 @@ Do not report these:
 - "Could be faster" with no evidence the path is hot, the data large, or the call frequent.
 - An index claim without schema evidence — flag it for verification instead of asserting it as a finding.
 - Work already bounded by pagination, a small fixed N, an existing cache, or a guard.
+- Sequential `await`s where the later call consumes the earlier call's result — a data dependency, not unnecessary serialization; confirm the calls are independent before flagging.
 
 ## Severity anchors
 
