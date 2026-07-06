@@ -50,7 +50,7 @@ findings.
 
 | Skill | Description | Install |
 | --- | --- | --- |
-| [rust-api-guidelines](./rust-api-guidelines) | Review Rust APIs against the Rust API Guidelines, with the full upstream guidelines vendored as references. | `apm install -g kazukitcy/skills/rust-api-guidelines` |
+| [rust-api-guidelines](./rust-api-guidelines) | Review Rust APIs against the Rust API Guidelines and the Microsoft Rust Guidelines, with both upstream guideline sets vendored as references. | `apm install -g kazukitcy/skills/rust-api-guidelines` |
 
 ## License
 
