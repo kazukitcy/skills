@@ -1,0 +1,180 @@
+{
+  "skill_name": "test-engineering",
+  "evals": [
+    {
+      "id": "case-api-001",
+      "prompt": "Create tests for: POST /users requires email and password >= 12 chars. Duplicate email is rejected. Success returns created and user id.",
+      "expected_output": "Requirements matrix, oracle choices, normal cases, boundary cases, negative cases, ambiguity list, and priorities.",
+      "assertions": [
+        "Selects case-design mode",
+        "Extracts requirements",
+        "Includes empty/missing email and short password",
+        "Marks unspecified error details ambiguous",
+        "Includes oracle for duplicate rejection"
+      ]
+    },
+    {
+      "id": "case-ambiguous-001",
+      "prompt": "The system should handle invalid input nicely. Make tests.",
+      "expected_output": "Marks requirement as not-testable-as-written or ambiguous and proposes clarification and generic failure categories.",
+      "assertions": [
+        "Does not invent expected behavior",
+        "Identifies missing acceptance criteria"
+      ]
+    },
+    {
+      "id": "case-boundary-001",
+      "prompt": "Here is a stack trace from production. Turn it into a test.",
+      "expected_output": "Uses the regression-design mode rather than ordinary case design.",
+      "assertions": [
+        "Recognizes bug-driven input",
+        "Applies the regression-design workflow"
+      ]
+    },
+    {
+      "id": "regression-idempotency-001",
+      "prompt": "Incident: repeating the same idempotency key can create duplicate records when requests overlap. Create a regression test design.",
+      "expected_output": "Minimal reproduction, before-fix failure, after-fix expected behavior, idempotency oracle, deterministic concurrency/retry notes.",
+      "assertions": [
+        "Selects regression-design mode",
+        "Preserves trigger",
+        "Asserts no duplicate side effects",
+        "Defines before/after behavior"
+      ]
+    },
+    {
+      "id": "regression-ambiguous-001",
+      "prompt": "A customer says the result is wrong, but we only know the input and returned output.",
+      "expected_output": "Separates observed and expected behavior, marks missing contract ambiguity, and proposes acceptance criteria to confirm.",
+      "assertions": [
+        "Does not invent expected result",
+        "Preserves failing input"
+      ]
+    },
+    {
+      "id": "regression-boundary-001",
+      "prompt": "Design broad robustness tests for timeouts and malformed inputs.",
+      "expected_output": "Uses the robustness-planning mode unless there is a specific known bug to regressionize.",
+      "assertions": [
+        "Recognizes no specific bug",
+        "Applies the robustness-planning workflow"
+      ]
+    },
+    {
+      "id": "robustness-import-001",
+      "prompt": "Plan robustness tests for a file import that updates persistent state: I/O errors, corrupted files, and crashes during import.",
+      "expected_output": "Fault injection plan, corrupt input plan, crash recovery plan, no-corruption/all-or-nothing/idempotency oracles, replay and regressionization path.",
+      "assertions": [
+        "Selects robustness-planning mode",
+        "Includes Nth failure or partial operation",
+        "Includes corrupt input seed strategy",
+        "Includes recovery oracle"
+      ]
+    },
+    {
+      "id": "robustness-ambiguous-001",
+      "prompt": "Make this parser robust.",
+      "expected_output": "Identifies missing input format and contract details, proposes structured fuzz/corrupt-input plan without inventing exact behavior.",
+      "assertions": [
+        "Marks ambiguity",
+        "Requires replay/minimization",
+        "Avoids random fuzz only"
+      ]
+    },
+    {
+      "id": "robustness-boundary-001",
+      "prompt": "Given this API spec, produce ordinary validation tests.",
+      "expected_output": "Uses the case-design mode unless robustness-specific faults are requested.",
+      "assertions": [
+        "Applies the case-design workflow"
+      ]
+    },
+    {
+      "id": "diagnostics-mutation-001",
+      "prompt": "Line coverage is 93%, but removing an input validation branch survives mutation testing. Diagnose.",
+      "expected_output": "Classifies surviving mutant as missing behavior check or weak oracle, explains why coverage is insufficient, and proposes targeted negative tests/assertions.",
+      "assertions": [
+        "Selects suite-diagnostics mode",
+        "Does not say only increase coverage",
+        "Names oracle weakness",
+        "Provides prioritized improvement"
+      ]
+    },
+    {
+      "id": "diagnostics-ambiguous-001",
+      "prompt": "Coverage dropped by 5%. Is that bad?",
+      "expected_output": "Requests or infers context cautiously, distinguishes risk areas from raw percentage, and suggests reviewing changed branches and assertions.",
+      "assertions": [
+        "Avoids numeric-only judgment",
+        "Mentions behavior and oracle review"
+      ]
+    },
+    {
+      "id": "diagnostics-boundary-001",
+      "prompt": "Create release go/no-go criteria.",
+      "expected_output": "Uses the release-gate mode rather than suite diagnostics.",
+      "assertions": [
+        "Applies the release-gate workflow"
+      ]
+    },
+    {
+      "id": "strategy-layering-001",
+      "prompt": "Review a project test strategy. Current suite has many unit tests, three slow end-to-end tests in PR, no nightly lane, and no release checklist. The product has authentication, imports, and background jobs.",
+      "expected_output": "Risk-based test portfolio with local/PR/nightly/release layers, harness independence review, oracle strategy, and P0/P1/P2 roadmap.",
+      "assertions": [
+        "Selects strategy-review mode",
+        "Separates fast and deep lanes",
+        "Names risks",
+        "Avoids simply recommending more tests",
+        "Includes independent evidence review"
+      ]
+    },
+    {
+      "id": "strategy-ambiguous-001",
+      "prompt": "Our tests feel weak. What should we do?",
+      "expected_output": "Asks for or states assumptions about risk profile and current test layers; provides a conservative strategy outline without inventing project details.",
+      "assertions": [
+        "Marks missing context",
+        "Gives next evidence to collect",
+        "Does not invent specific product behavior"
+      ]
+    },
+    {
+      "id": "strategy-boundary-001",
+      "prompt": "Given this one endpoint spec, generate exact test cases.",
+      "expected_output": "Uses the case-design mode and does not produce a broad project strategy.",
+      "assertions": [
+        "Applies the case-design workflow",
+        "Does not overproduce strategy content"
+      ]
+    },
+    {
+      "id": "release-auth-001",
+      "prompt": "Create a release quality gate for login, password reset, and session refresh changes.",
+      "expected_output": "Go/no-go or conditional-go checklist with automated evidence, manual review, risk summary, rollback and monitoring readiness.",
+      "assertions": [
+        "Selects release-gate mode",
+        "Includes security risks",
+        "Includes skipped/flaky/known issue review",
+        "Includes rollback"
+      ]
+    },
+    {
+      "id": "release-ambiguous-001",
+      "prompt": "Can we ship?",
+      "expected_output": "States missing release scope/evidence, provides a checklist and conditional decision structure without guessing.",
+      "assertions": [
+        "Does not claim go without evidence",
+        "Lists needed evidence"
+      ]
+    },
+    {
+      "id": "release-boundary-001",
+      "prompt": "Diagnose why this mutant survived.",
+      "expected_output": "Uses the suite-diagnostics mode.",
+      "assertions": [
+        "Applies the suite-diagnostics workflow"
+      ]
+    }
+  ]
+}

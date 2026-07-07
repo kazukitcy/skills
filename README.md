@@ -47,6 +47,19 @@ findings.
 | --- | --- | --- |
 | [review-code](./review-code) | Risk-routed, multi-checklist code review with consolidated severity-ranked findings. | `apm install -g kazukitcy/skills/review-code` |
 
+### Testing
+
+`test-engineering` is a single skill: a mode router that classifies a testing
+request into one of six modes (case-design, regression-design,
+robustness-planning, suite-diagnostics, strategy-review, release-gate), each
+backed by a mode workflow and reference files under
+`test-engineering/references/` and output templates under
+`test-engineering/assets/`.
+
+| Skill | Description | Install |
+| --- | --- | --- |
+| [test-engineering](./test-engineering) | Mode-routed test design and assessment: test cases from specs, bug-to-regression tests, robustness/fuzz planning, suite diagnostics, test strategy review, and release gates. | `apm install -g kazukitcy/skills/test-engineering` |
+
 ### Rust
 
 | Skill | Description | Install |

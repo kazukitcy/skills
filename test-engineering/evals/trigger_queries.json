@@ -1,0 +1,130 @@
+[
+  {
+    "query": "このAPI仕様から通常系・境界値・異常系のテストケースを作って",
+    "should_trigger": true
+  },
+  {
+    "query": "READMEの仕様と既存テストを見比べて、未テスト要件を表にして",
+    "should_trigger": true
+  },
+  {
+    "query": "このschemaからvalidationのnegative testを洗い出して",
+    "should_trigger": true
+  },
+  {
+    "query": "受け入れ条件から実装可能なテストケース一覧を作って",
+    "should_trigger": true
+  },
+  {
+    "query": "このコードから外部仕様を推定し、その仕様に対するテストケースを作ってください",
+    "should_trigger": true
+  },
+  {
+    "query": "実装を読んで、公開APIとして観測できる振る舞いをrequirementsに整理してください",
+    "should_trigger": true
+  },
+  {
+    "query": "このバグ報告から最小再現と回帰テストを作って",
+    "should_trigger": true
+  },
+  {
+    "query": "stack traceとログをもとに、修正後に追加するテストを設計して",
+    "should_trigger": true
+  },
+  {
+    "query": "fuzzで見つかった失敗入力を回帰テスト化して",
+    "should_trigger": true
+  },
+  {
+    "query": "同じ操作を2回実行すると重複作成されるincidentをテストにして",
+    "should_trigger": true
+  },
+  {
+    "query": "本番障害のログから回帰テストを作って",
+    "should_trigger": true
+  },
+  {
+    "query": "import処理について、I/Oエラー、途中クラッシュ、壊れた入力への堅牢性テスト計画を作って",
+    "should_trigger": true
+  },
+  {
+    "query": "fuzz testingのseed corpusとreplay方針を設計して",
+    "should_trigger": true
+  },
+  {
+    "query": "resource exhaustionとtimeout時のcleanupをテストしたい",
+    "should_trigger": true
+  },
+  {
+    "query": "partial writeとretry failureのfault injectionを計画して",
+    "should_trigger": true
+  },
+  {
+    "query": "line coverageは高いがmutation testingでvalidation branchが生き残る。診断して",
+    "should_trigger": true
+  },
+  {
+    "query": "branch coverage gapを見て、どのテストが足りないか分類して",
+    "should_trigger": true
+  },
+  {
+    "query": "flaky testが多いので原因と改善案を整理して",
+    "should_trigger": true
+  },
+  {
+    "query": "CI failureとslow test reportからテストスイートの弱点を見て",
+    "should_trigger": true
+  },
+  {
+    "query": "mutation testingのsurviving mutantを分類して",
+    "should_trigger": true
+  },
+  {
+    "query": "このプロジェクトのテスト戦略を見直して、PR・nightly・releaseで何を走らせるべきか整理して",
+    "should_trigger": true
+  },
+  {
+    "query": "unit/integration/e2e/fuzzの配分を決めたい",
+    "should_trigger": true
+  },
+  {
+    "query": "今のCIが遅い割に信頼できない。テストポートフォリオを設計して",
+    "should_trigger": true
+  },
+  {
+    "query": "複数の独立したテストハーネスが必要か判断して",
+    "should_trigger": true
+  },
+  {
+    "query": "来週リリースする認証機能の品質ゲートを作って",
+    "should_trigger": true
+  },
+  {
+    "query": "pre-release checklistとgo/no-go判断軸を作成して",
+    "should_trigger": true
+  },
+  {
+    "query": "既知issueとrollback readinessを含むrelease readiness reviewをして",
+    "should_trigger": true
+  },
+  {
+    "query": "conditional-goのリスク受け入れ表を作って",
+    "should_trigger": true
+  },
+  {
+    "query": "この関数をリファクタリングして読みやすくしてください",
+    "should_trigger": false
+  },
+  {
+    "query": "この関数のパフォーマンスを最適化して",
+    "should_trigger": false
+  },
+  {
+    "query": "新機能の実装方針を設計して",
+    "should_trigger": false
+  },
+  {
+    "query": "このPRのコードレビューをして",
+    "should_trigger": false
+  }
+]
