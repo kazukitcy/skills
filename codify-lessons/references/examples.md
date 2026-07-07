@@ -1,7 +1,7 @@
 # Worked Examples
 
 One end-to-end example per destination tier: lint rule, runtime enforcement,
-skill, instruction file rule, memory note.
+repository script, skill, instruction file rule, memory note.
 
 ## Lint rule (syntax-detectable)
 
@@ -47,6 +47,21 @@ confirmation (other runtimes: the equivalent command gate):
 ```jsonc
 "permissions": { "ask": ["Bash(rm:*)"] }
 ```
+
+## Repository script (fixed command sequence, no gate)
+
+- First attempt: hand-wrote the same log-watching loop and JSONL extraction
+  one-liner four separate times during one debugging session, with small
+  errors each time.
+- Final solution: checked the sequence in as `scripts/watch-extract.sh` with
+  a one-line pointer in the instruction file.
+- Insight: re-deriving the same snippet is the signal — the sequence needs
+  no gate and no judgment, so a script beats both prose and a skill. This
+  lesson also splits: the procedure became the script; the warning ("do not
+  re-derive it inline") became the instruction-file pointer line.
+
+Artifacts: `scripts/watch-extract.sh` (executable, run once to validate) and
+the pointer line in the instruction file.
 
 ## Skill (procedure with judgment)
 

@@ -35,9 +35,13 @@ Before the workflow, resolve two things:
 
 1. **Enumerate abandoned approaches.** Scan the whole session and list every
    point where an approach was abandoned, reverted, or retried — not just the
-   most recent one. The step is done when the list covers the full session
-   and each entry names what was tried and why it was dropped. From this
-   list, select the entries worth codifying; discard first-try successes.
+   most recent one — and every place essentially the same improvised snippet
+   or command was re-derived. Re-deriving something a second time is as
+   strong a signal as a failure: it marks a lesson whose current form (prose
+   or memory) is the wrong tier. The step is done when the list covers the
+   full session and each entry names what was tried and why it was dropped
+   or re-derived. From this list, select the entries worth codifying;
+   discard first-try successes.
 2. **Pair failure with success.** For each selected entry write three points:
    the first attempt (what was done and how it failed), the final solution
    (what worked), and the bridging insight (why the first attempt could not
@@ -49,11 +53,12 @@ Before the workflow, resolve two things:
    codify "what to check", not the one-off file name or version number.
 4. **Dedup check (mandatory).** Extract 2-3 search keys per lesson (tool
    names, API names, symptom words) and run the runtime reference's dedup
-   search commands against all five destination kinds: skills, instruction
-   files, lint rules, enforcement config, and memory notes. Do not skip a
-   kind because a hit already turned up in another. Any searched path may be
-   absent — that is "checked, absent", not a failure. The step is done when
-   each of the five kinds is recorded as hit, no hit, or location absent.
+   search commands against all six destination kinds: skills, instruction
+   files, lint rules, enforcement config, repository scripts, and memory
+   notes. Do not skip a kind because a hit already turned up in another. Any
+   searched path may be absent — that is "checked, absent", not a failure.
+   The step is done when each of the six kinds is recorded as hit, no hit,
+   or location absent.
 
    Classify each lesson: **new** (no hits), **append to existing** (related
    entry exists, new info is complementary), **duplicate** (fully covered —
@@ -70,15 +75,22 @@ Before the workflow, resolve two things:
    the gate only when generality is already certain (documented behavior, or
    reproducible by a test).
 
-   For lessons that pass the gate, walk the table top to bottom and take the
-   first row that fits. Prefer machine enforcement over prose: an agent
-   reliably obeys a lint rule or enforcement gate, only usually obeys a
-   skill, and sometimes obeys a sentence in an instruction file.
+   Split compound lessons before classifying: when a lesson mixes a
+   procedure with a warning, classify each part separately — the procedure
+   goes to the highest machine tier that fits, the warning becomes a prose
+   rule pointing at it. Otherwise the prose half drags the whole lesson down
+   the table.
+
+   For each part, walk the table top to bottom and take the first row that
+   fits. Prefer machine enforcement over prose: an agent reliably obeys a
+   lint rule, enforcement gate, or script, only usually obeys a skill, and
+   sometimes obeys a sentence in an instruction file.
 
    | Nature of the lesson | Destination |
    | --- | --- |
    | Detectable at code/config syntax level | Lint rule (ast-grep or existing linter config) |
    | Enforceable at the operation level (forbid or require a specific command or tool call) | Runtime enforcement (hooks, permission rules, command gates — per the runtime reference) |
+   | Reducible to a fixed command sequence, no gate or judgment needed | Repository script (checked in, executable) plus a one-line pointer in the agent instruction file |
    | Requires a procedure, contextual judgment, or templates | Skill — new, or append to an existing one |
    | Short always-applied rule, no judgment involved | Agent instruction file (user global if cross-project, else the project's) |
    | Project-specific one-off | Not adopted — a commit message or PR description is enough |
@@ -117,6 +129,7 @@ Stop and reconsider when any of these thoughts appear:
 | "Writing it as prose is faster than a lint rule or enforcement gate" | Agents drift from prose. If a row higher in the table fits, use it. |
 | "The insight is thin, but I should write something" | Zero proposals is a correct answer. |
 | "Dedup is tedious; I'll clean duplicates later" | Duplicate rules split behavior. Dedup is mandatory. |
+| "I'll just re-derive that snippet inline again" | Hand-writing the same snippet a second time means the lesson belongs in the script tier, not prose. |
 | "Only the last lesson matters" | Step 1 requires enumerating the whole session before selecting. |
 
 ## Related skills

@@ -1,8 +1,8 @@
 # Output Templates
 
 Generate artifacts only for items the user adopted. One template per
-destination tier: lint rule, runtime enforcement, skill, instruction file
-rule, memory note.
+destination tier: lint rule, runtime enforcement, repository script, skill,
+instruction file rule, memory note.
 
 ## Lint rule (ast-grep)
 
@@ -33,6 +33,20 @@ them here. Two rules apply regardless of runtime:
   allows comments (TOML, JSONC). For strict-JSON configs, put the rationale
   in the proposal and the commit message instead — a comment would break the
   file.
+
+## Repository script
+
+Check the command sequence into the project as an executable script (e.g.
+`scripts/<verb-object>.sh`), following the project's existing script
+conventions. Add a one-line pointer in the agent instruction file so agents
+find it instead of re-deriving the sequence:
+
+```markdown
+- Use `scripts/<name>.sh` to <what it does> — do not re-derive it inline (reason: <short rationale>)
+```
+
+Validation: run the script once against a real input (or at minimum
+`--help` / a dry-run flag) and confirm it is executable (`test -x`).
 
 ## Skill (new or append)
 

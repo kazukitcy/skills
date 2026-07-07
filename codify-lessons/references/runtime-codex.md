@@ -13,6 +13,7 @@ Concrete locations and mechanisms when this skill runs inside the Codex CLI.
 | Enforcement config | `~/.codex/rules/*.rules` (user), `.codex/rules/` (project, loaded only when trusted), hooks, `~/.codex/config.toml`, and `.codex/config.toml` (project, loaded only when trusted) |
 | Memory notes | `~/.codex/memories/` is Codex-generated state — do not hand-edit it. Write manual lesson notes to `<project>/docs/lessons.md` — this exact path is required so the dedup search finds them for recurrence detection |
 | Lint rules | `<project>/rules/` with `sgconfig.yml` (ast-grep) |
+| Repository scripts | `<project>/scripts/` (or `tools/` / `bin/` — follow the project's existing convention) |
 
 ## Dedup search commands
 
@@ -27,6 +28,7 @@ grep -risF -e "<key>" -- ~/.agents/skills/ .agents/skills/
 grep -isF  -e "<key>" -- ~/.codex/AGENTS.md AGENTS.md
 grep -risF -e "<key>" -- rules/
 grep -risF -e "<key>" -- ~/.codex/rules/ .codex/rules/ ~/.codex/hooks.json .codex/hooks.json ~/.codex/config.toml .codex/config.toml
+grep -risF -e "<key>" -- scripts/ tools/ bin/
 grep -risF -e "<key>" -- docs/lessons.md ~/.codex/memories/
 ```
 

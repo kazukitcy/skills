@@ -22,10 +22,11 @@ judgment leaves a trace.
 Adoption candidates:
 1. [lint] <rule name>: <1 line> (artifact: <path>, from lesson N)
 2. [enforce] <hook, permission rule, or command gate>: <1 line> (from lesson N)
-3. [skill append] <existing skill name>: <1 line> (from lesson N)
-4. [skill new] <skill name>: <1 line> (from lesson N)
-5. [rule] instruction file (global/project): <1 line> (from lesson N)
-6. [memory] <note slug>: <1 line> (first occurrence, from lesson N)
+3. [script] <script path>: <1 line> (plus instruction-file pointer, from lesson N)
+4. [skill append] <existing skill name>: <1 line> (from lesson N)
+5. [skill new] <skill name>: <1 line> (from lesson N)
+6. [rule] instruction file (global/project): <1 line> (from lesson N)
+7. [memory] <note slug>: <1 line> (first occurrence, from lesson N)
 
 Duplicate detected (no proposal needed):
 - Lesson N: fully covered by <section or line> of <skill/rule/file> -> no addition

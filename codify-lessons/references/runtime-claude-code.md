@@ -13,6 +13,7 @@ Concrete locations and mechanisms when this skill runs inside Claude Code.
 | Enforcement config | `~/.claude/settings.json` (user), `.claude/settings.json` (project) |
 | Memory notes | The session's auto-memory directory, indexed by `MEMORY.md`. Default `~/.claude/projects/<project-slug>/memory/`; check settings for an `autoMemoryDirectory` override first and use it when present |
 | Lint rules | `<project>/rules/` with `sgconfig.yml` (ast-grep) |
+| Repository scripts | `<project>/scripts/` (or `tools/` / `bin/` — follow the project's existing convention) |
 
 ## Dedup search commands
 
@@ -27,6 +28,7 @@ grep -risF -e "<key>" -- ~/.claude/skills/ .claude/skills/
 grep -isF  -e "<key>" -- ~/.claude/CLAUDE.md CLAUDE.md .claude/CLAUDE.md AGENTS.md
 grep -risF -e "<key>" -- rules/
 grep -isF  -e "<key>" -- ~/.claude/settings.json .claude/settings.json
+grep -risF -e "<key>" -- scripts/ tools/ bin/
 grep -rilsF -e "<key>" -- "$HOME/.claude/projects/<project-slug>/memory/"
 ```
 
