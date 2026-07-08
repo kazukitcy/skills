@@ -1,6 +1,6 @@
 ---
 name: skill-writer
-description: Create, revise, and evaluate agent skills against a rubric covering invocation, skill contracts, information hierarchy, completion criteria, progressive disclosure, and pruning. Use when designing a new skill, improving an existing SKILL.md, or reviewing a skill before distribution.
+description: Write and evaluate agent skill text against a rubric covering invocation, skill contracts, information hierarchy, completion criteria, progressive disclosure, and pruning. Use when drafting a new skill, applying a decided revision to a SKILL.md, or running a text-level rubric review of a skill before distribution. For diagnosing a skill that misbehaves in practice, gating whether something should become a skill, or pruning a skill portfolio, use skill-gardening instead.
 ---
 
 # Skill Writer

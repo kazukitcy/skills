@@ -33,7 +33,8 @@ apm install -g kazukitcy/skills/<skill-name>#v0.1.0
 | Skill | Description | Install |
 | --- | --- | --- |
 | [codify-lessons](./codify-lessons) | Pair what failed first with what finally worked in a session, then codify the insight as a lint rule, runtime enforcement, skill, memory note, or agent instruction rule, with per-runtime (Claude Code / Codex) references. | `apm install -g kazukitcy/skills/codify-lessons` |
-| [skill-writer](./skill-writer) | Create, revise, and evaluate agent skills with a source-model-based rubric and review checklist. | `apm install -g kazukitcy/skills/skill-writer` |
+| [skill-gardening](./skill-gardening) | Grow a skill portfolio over its lifecycle: gate new-skill proposals, fix misfiring or underperforming skills against observed failures, and run recurring pruning passes. | `apm install -g kazukitcy/skills/skill-gardening` |
+| [skill-writer](./skill-writer) | Write and evaluate agent skill text with a source-model-based rubric and review checklist. | `apm install -g kazukitcy/skills/skill-writer` |
 
 ### Review
 
