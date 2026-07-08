@@ -390,21 +390,20 @@ Remedy:
 ### 10. Pruning
 
 Pass when every line has a current job and every behavior has one source of
-truth.
+truth. This section is the drafting-time pass over the text in hand; the
+canonical definitions and cures for the line tests — duplication, relevance,
+no-op, sediment, sprawl — live in `skill-gardening`'s pruning-pass reference,
+which also owns lifecycle and portfolio pruning.
 
 Check:
 
-- Does the line change what the agent does?
-- Is the line still relevant to the current skill?
-- Is the same rule stated elsewhere?
-- Is the line a no-op because the agent would already do it?
-- Has old process sediment remained after the workflow changed?
+- Does the line pass the ordered line tests: not duplicated elsewhere, still
+  relevant, not a no-op, not sediment, not sprawl?
 - Is each omission deliberate: filled, or left open as an explicit branch,
   rather than silently delegated to the agent's priors?
 - Is sprawl judged against load frequency, with the harshest bar for
   always-loaded descriptions and the loosest for on-demand references?
 - Is a mandated template section kept thin or empty as boilerplate?
-- Is the file sprawling even after duplication and sediment are removed?
 
 Fail when background, reassurance, generic best practice, or stale process text
 survives because removing it feels risky, or when undecided omissions silently
@@ -412,17 +411,13 @@ delegate decisions to the agent's priors.
 
 Remedy:
 
-- Run the no-op test sentence by sentence and delete the failing sentence
-  whole; most prose that fails should go, not be rewritten.
-- The no-op test is model-relative: settle a contested no-op by a forward-test,
-  not debate — behavioral verification is owned by the review checklist's
-  Validate step.
+- Delete the failing sentence whole; most prose that fails should go, not be
+  rewritten.
+- Settle a contested no-op by a forward-test, not debate — behavioral
+  verification is owned by the review checklist's Validate step.
 - Decide each silence: fill it or name it as an open branch.
-- Keep one authoritative location for each rule.
-- Delete boilerplate template sections that fail the no-op test.
-- Move live but branch-specific material behind pointers.
-- Split by invocation or sequence only when the split reduces context or
-  premature-completion risk.
+- For cures beyond deletion — collapsing duplication, reading sediment strata,
+  restructuring sprawl — apply `skill-gardening`'s pruning pass.
 
 ### 11. Runtime Fit
 

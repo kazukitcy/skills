@@ -162,17 +162,20 @@ jargon debt.
 
 ## 11. Prune
 
-- Search for duplicated rules across `SKILL.md` and `references/`.
-- Remove or flag no-op sentences that do not change behavior versus the default.
+This is the drafting-time pass over the text in hand; the ordered line tests —
+duplication, relevance, no-op, sediment, sprawl — are defined, with their
+cures, in `skill-gardening`'s pruning-pass reference, which also owns
+lifecycle and portfolio pruning.
+
+- Run the ordered line tests across `SKILL.md` and `references/`; remove or
+  flag failing lines.
 - Read the draft for negative space; mark omissions never decided as filled or
   explicitly open.
 - Settle contested no-ops by forward-test, not debate, under step 12's
   behavioral-verification rule.
-- Flag sediment: stale setup, old process notes, or obsolete runtime mechanics.
 - Apply a load-frequency-tiered sprawl bar: always-loaded descriptions harshest,
   every-run `SKILL.md` next, on-demand references loosest.
 - Flag mandated template sections kept thin or empty as boilerplate.
-- Flag sprawl after duplication and sediment are removed.
 - Keep attribution or license notes only when they carry legal or source-model
   value.
 
