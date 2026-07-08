@@ -95,14 +95,40 @@ Before the workflow, resolve two things:
    | Short always-applied rule, no judgment involved | Agent instruction file (user global if cross-project, else the project's) |
    | Project-specific one-off | Not adopted — a commit message or PR description is enough |
 
-6. **Present the proposals.** Present every lesson in the
-   Retrospective/Proposals format — read
+6. **Vet, then present the proposals.** Before presenting, vet each
+   adoption candidate against four failure classes, each with its own
+   exit: a no-op (a future agent would already behave this way by
+   default) and a dressed-up one-off (a project-specific incident phrased
+   as a general rule) move to Not adopted with the class as the reason; a
+   wrong tier (a different row of the step-5 table fits, or the scope is
+   wrong) is reclassified per the step-5 table and vetted again; a
+   duplicate that survived step 4 moves to the Duplicate detected section
+   with its covering location. Attach to each surviving candidate the
+   failure it prevents (from step 2) and a confidence grade with the
+   evidence behind it — recurrence, documented behavior, a cold-read
+   verdict, or a stated causal link to the step-2 failure; a candidate
+   backed only by the causal link caps at low confidence. No vibes-only
+   proposals.
+
+   Settle a contested or uncertain no-op verdict behaviorally, not by
+   self-critique — session context fills gaps a future agent will not
+   have. When `skill-gardening` is available, hand the check to its
+   control-check protocol by name and record the returned verdict.
+   Otherwise run a cold read yourself: a fresh-context run (subagent or
+   headless) given the tempting scenario without the proposed wording,
+   whose prompt restates verbatim that the run is read-only — no file
+   edits, no artifact writes, return the observed default behavior only.
+   When the runtime offers neither, record the verdict as blocked — a
+   blocked check is not a pass — and present the candidate with the open
+   question flagged for the user.
+
+   Present every lesson in the Retrospective/Proposals format — read
    [references/presentation-format.md](references/presentation-format.md)
    for the exact layout and its variants before writing the report. List
    non-adoptions and duplicates explicitly to leave a trace of the judgment;
-   zero proposals is a valid outcome. This step is done when the report is
-   shown and you have stopped, with nothing written, awaiting the user's
-   selection.
+   zero proposals is a valid outcome. This step is done when every presented
+   candidate carries its prevents/confidence line, the report is shown, and
+   you have stopped, with nothing written, awaiting the user's selection.
 7. **Write out the adopted items.** Only after the user names items to
    adopt: generate their artifacts from
    [references/output-templates.md](references/output-templates.md),
