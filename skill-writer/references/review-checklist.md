@@ -34,9 +34,13 @@ requiring the reviewer to reread or summarize the original source.
 
 - Read the frontmatter description.
 - List each distinct trigger branch it names.
+- Mark any workflow or process summary in the description as a defect.
 - Mark synonym triggers as duplication.
 - Mark missing trigger branches when realistic user requests would not invoke the
   skill.
+- Check triggers against realistic user vocabulary, not the skill body's own
+  terminology.
+- Compare sibling skills' descriptions and mark collisions.
 - Confirm the invocation mode matches reach: model-invoked when the agent or
   another skill must fire it and the context load is worth paying; user-invoked
   when only the human will, where the runtime supports that mode.
@@ -52,17 +56,43 @@ manual.
 - Extract the target runtime, placement, expected outputs, non-goals, and
   validation method from the skill.
 - Check whether at least two realistic user requests are covered.
+- Check execution-context preconditions such as live-user requirements or bans on
+  CI and scheduled invocation.
+- When the skill ingests external content, confirm it marks that content as data,
+  not instructions, and says what to do with instruction-like content found in
+  it.
 - Mark hidden assumptions about placement, generated files, external tools, or
   validation as blockers when they could change the implementation.
 
 Completion criterion: a new agent could create or revise the skill without
 guessing the user's intent.
 
-## 5. Review Workflow Steps
+## 5. Review Rule Form
+
+- List every prohibition and negation.
+- Confirm each negation is positively rephrased or kept as a hard guardrail with
+  inlined exceptions and a positive target.
+- Check that wrong-shaped output gets a recipe or template, discipline failures
+  get a scoped prohibition, and condition-dependent behavior gets an observable
+  predicate.
+- Flag nuance clauses and exemption clauses.
+- Check refusals for predictable off-contract requests are scripted with
+  legitimate alternatives.
+- Check imperative intensity matches skill type: strong commitment devices for
+  discipline skills, plain clarity for reference skills.
+
+Completion criterion: every rule has a form verdict, and every negation a
+rewrite-or-guardrail verdict.
+
+## 6. Review Workflow Steps
 
 - Read the body of `SKILL.md` from top to bottom.
 - For each important step, identify the action and completion criterion.
 - Mark vague steps that can finish without observable evidence.
+- Mark human-judgment criteria that are self-assessed instead of written as
+  stop-gates.
+- Mark workflow steps that restate procedures the model already holds instead of
+  naming the leading word and local divergence.
 - Check whether later steps could pull the agent into premature completion.
 - Check whether steps are written as actions rather than background explanation.
 - If the skill is all reference, check for a stated exhaustiveness bar instead
@@ -72,7 +102,7 @@ Completion criterion: each important step has an observable done condition and
 requires enough legwork, or, for a reference-only skill, the reference states
 its exhaustiveness bar.
 
-## 6. Review Information Hierarchy
+## 7. Review Information Hierarchy
 
 - Separate content into steps, in-skill reference, disclosed reference, scripts,
   and assets.
@@ -83,13 +113,19 @@ its exhaustiveness bar.
   to read it.
 - Confirm each concept's definition, rules, and caveats are co-located under
   one heading rather than scattered across the file.
+- Confirm shared reference lives in a home the intended readers can reach.
+- Confirm cross-skill dependencies are prose invocations by name, not deep
+  `../other-skill/file.md` paths.
+- Confirm reference chains stay one level deep.
+- Check script-vs-inline-code token accounting: executing a script costs no
+  context except its output; inline code is paid on every load.
 - Confirm scripts and assets exist only when they improve repeatability,
   determinism, or reuse.
 
 Completion criterion: each file has one role and each reference is reachable at
 the right time.
 
-## 7. Review Progressive Disclosure
+## 8. Review Progressive Disclosure
 
 - For each reference file, name the branch or condition that needs it.
 - Mark references that are hidden only because they are long.
@@ -99,7 +135,20 @@ the right time.
 Completion criterion: material is disclosed by branch need, not by a simple wish
 to shorten `SKILL.md`.
 
-## 8. Review Leading Words
+## 9. Review Cross-Context Artifacts
+
+- Identify artifacts the skill has the agent produce for another context:
+  subagent prompts, plans, handoff documents, or later-session notes.
+- Check that each artifact inlines everything its reader needs.
+- Check that subagent prompts restate verbatim every safety or scope rule the
+  subagent must obey.
+- Check templates for a quality bar the agent applies before finishing.
+- Check long-running or risky delegated work for task-specific STOP conditions.
+- Check staleable artifacts for their own staleness marker.
+
+Completion criterion: no artifact depends on the writer's context.
+
+## 10. Review Leading Words
 
 - Identify the main words or phrases used to anchor invocation or execution.
 - Check whether they are existing domain words or clearly defined local terms.
@@ -111,12 +160,18 @@ to shorten `SKILL.md`.
 Completion criterion: leading words sharpen behavior and do not create new
 jargon debt.
 
-## 9. Prune
+## 11. Prune
 
 - Search for duplicated rules across `SKILL.md` and `references/`.
 - Remove or flag no-op sentences that do not change behavior versus the default.
-- Settle contested no-ops by forward-testing the skill, not by debate.
+- Read the draft for negative space; mark omissions never decided as filled or
+  explicitly open.
+- Settle contested no-ops by forward-test, not debate, under step 12's
+  behavioral-verification rule.
 - Flag sediment: stale setup, old process notes, or obsolete runtime mechanics.
+- Apply a load-frequency-tiered sprawl bar: always-loaded descriptions harshest,
+  every-run `SKILL.md` next, on-demand references loosest.
+- Flag mandated template sections kept thin or empty as boilerplate.
 - Flag sprawl after duplication and sediment are removed.
 - Keep attribution or license notes only when they carry legal or source-model
   value.
@@ -124,17 +179,20 @@ jargon debt.
 Completion criterion: every remaining line has a current behavioral,
 operational, or attribution job.
 
-## 10. Validate
+## 12. Validate
 
 - Run the target runtime or repository validator when available.
 - Check links from `SKILL.md` to references.
 - Check frontmatter syntax and required fields.
 - Check README or package index entries for added, renamed, or removed skills.
-- Forward-test with a realistic prompt when the skill is complex or
-  behavior-sensitive.
+- For behavioral verification, including forward-tests and fresh-context
+  re-runs against a control, hand off to `skill-gardening` when it is available;
+  when it is absent, forward-test realistic prompts here and record that
+  absence.
 
 Completion criterion: structural validation passes, repository docs are aligned,
-and any skipped forward-test has a stated reason.
+any local prompt test records why it stayed here, and any skipped check has a
+stated reason.
 
 ## Output Format
 

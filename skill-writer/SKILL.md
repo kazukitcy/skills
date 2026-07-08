@@ -1,6 +1,6 @@
 ---
 name: skill-writer
-description: Write and evaluate agent skill text against a rubric covering invocation, skill contracts, information hierarchy, completion criteria, progressive disclosure, and pruning. Use when drafting a new skill, applying a decided revision to a SKILL.md, or running a text-level rubric review of a skill before distribution. For diagnosing a skill that misbehaves in practice, gating whether something should become a skill, or pruning a skill portfolio, use skill-gardening instead.
+description: Write and evaluate agent skill text against a rubric covering invocation, skill contracts, rule form, information hierarchy, completion criteria, progressive disclosure, cross-context artifacts, and pruning. Use when drafting a new skill, applying a decided revision to a SKILL.md, or running a text-level rubric review of a skill before distribution. For diagnosing a skill that misbehaves in practice, gating whether something should become a skill, or pruning a skill portfolio, use skill-gardening instead.
 ---
 
 # Skill Writer
@@ -63,6 +63,14 @@ instructions.
    - Make the description trigger-oriented when the runtime supports
      model-invoked skills.
    - Write steps as actions with checkable completion criteria.
+   - State rules positively. Keep a prohibition only as a hard guardrail with
+     its exceptions decided and inlined, paired with what to do instead.
+   - Match each rule's form to the failure it prevents: recipe for shape,
+     prohibition for discipline, predicate for conditions.
+   - Make anything the skill hands to another context self-contained: subagent
+     prompts restate rules verbatim; plans inline what they need.
+   - Read the draft for negative space: decide each omission — fill it, or
+     leave it open as an explicit branch.
    - Keep one source of truth for each rule or concept.
    - Remove background explanation unless it changes agent behavior.
    - Continue when the draft can be reviewed without relying on unstated intent.
@@ -70,16 +78,17 @@ instructions.
 6. Review with the checklist.
    - Read `references/review-checklist.md`.
    - Apply the checklist in order and record blocking issues before polishing.
-   - Fix weak invocation, missing completion criteria, unreliable pointers,
-     duplication, scattered concept material, no-op prose, sediment, and sprawl
-     before calling the skill complete.
+   - Fix blocking findings in every checklist area before calling the skill
+     complete.
    - Continue when every finding is fixed or explicitly accepted.
 
 7. Validate in the target runtime.
    - Run available validators or repository checks.
    - Update repository documentation such as `README.md` when the repository
      requires it.
-   - Forward-test on realistic prompts when the skill is complex,
-     behavior-sensitive, or intended for repeated use.
+   - For behavioral verification, including forward-tests and fresh-context
+     re-runs against a control, hand off to `skill-gardening` when available;
+     when it is absent, forward-test realistic prompts here and record that
+     `skill-gardening` was absent.
    - Preserve the source-of-truth location resolved in the skill contract.
    - Continue when validation passes and any skipped check has a stated reason.

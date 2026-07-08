@@ -4,11 +4,23 @@ Use this rubric to evaluate agent skills. The goal is not to make a skill short.
 The goal is to make the skill predictable: the agent should follow the same
 process across runs, even when the exact output changes.
 
-This model adapts concepts from Matt Pocock's `writing-great-skills` skill and
-glossary:
+This model adapts concepts from four MIT-licensed sources:
 
-- https://github.com/mattpocock/skills/tree/main/skills/productivity/writing-great-skills
-- MIT License, Copyright (c) 2026 Matt Pocock
+- `mattpocock/skills` `writing-great-skills` and glossary:
+  https://github.com/mattpocock/skills/tree/main/skills/productivity/writing-great-skills
+  and
+  https://github.com/mattpocock/skills/blob/main/skills/productivity/writing-great-skills/GLOSSARY.md
+  MIT License, Copyright (c) 2026 Matt Pocock.
+- `obra/superpowers` `writing-skills`:
+  https://github.com/obra/superpowers/tree/main/skills/writing-skills
+  MIT License, Copyright (c) 2025 Jesse Vincent.
+- `addyosmani/agent-skills` skill anatomy and routing evals:
+  https://github.com/addyosmani/agent-skills/blob/main/docs/skill-anatomy.md
+  and https://github.com/addyosmani/agent-skills/tree/main/evals
+  MIT License, Copyright (c) 2025 Addy Osmani.
+- `shadcn/improve` handoff-artifact design:
+  https://github.com/shadcn/improve/tree/main/skills/improve
+  MIT License, Copyright (c) 2026 shadcn.
 
 Do not copy the source by shortening it. Translate its concepts and relationships
 into criteria that can diagnose a concrete skill.
@@ -60,6 +72,26 @@ The evaluation model must preserve these concepts and relationships:
 - No-op: a relevant instruction does not change behavior versus the default.
 - Sprawl: the skill is too long to read and maintain well, even if every line is
   live.
+- Negation: steering by prohibition activates the forbidden concept; a ban
+  half-reads as an instruction to do the thing.
+- Negative space: what a skill leaves unsaid delegates the decision to the
+  agent's priors, so omissions are filled, or left open as an explicit branch.
+- Rule form: the rhetorical form of a rule must match the failure it prevents;
+  prohibitions cure discipline violations and worsen shaping problems.
+- Cross-context artifact: output produced for a reader outside the current
+  context must be self-contained because pointers only work for readers who
+  share the writer's context.
+- Stop-gate: a completion criterion that needs human judgment must be an
+  explicit confirmation gate, not a self-assessed state.
+- Load frequency: context budgets are tiered by how often material is loaded:
+  always-loaded descriptions harshest, every-run `SKILL.md` next, on-demand
+  references loosest.
+- Reachability: shared reference homes are determined by invocation modes; a
+  model-invoked reference skill can be fired by other skills, an external
+  reference file is the only shared home two user-invoked skills can use, and a
+  router can only hint.
+- Trust boundary: content a skill has the agent ingest from outside is data, not
+  instructions.
 
 ## Evaluation Criteria
 
@@ -109,7 +141,13 @@ Check:
 
 - Does the description say what the skill does and name concrete trigger
   contexts?
+- Does the description avoid summarizing the skill's workflow or process steps?
+  A workflow-summary description becomes a shortcut the agent follows instead
+  of reading the body.
 - Is each trigger a distinct branch rather than a synonym for the same branch?
+- Are triggers phrased in the vocabulary users actually use, not in the body's
+  own terminology?
+- Is the description distinct from sibling skills' descriptions?
 - Does the description front-load the skill's leading word or strongest trigger?
 - Is the context load worth paying for autonomous model invocation, or should
   the skill be user-invoked?
@@ -121,8 +159,9 @@ Check:
   cognitive load is spent on purpose; do not recommend model invocation just to
   relieve it.
 
-Fail when the description is mostly identity, marketing, background, or repeated
-body content.
+Fail when the description is mostly identity, marketing, background, repeated
+body content, workflow summary, internal terminology, or a near-duplicate of a
+sibling skill's description.
 
 Remedy:
 
@@ -144,6 +183,11 @@ Check:
 - Are expected outputs and non-goals clear?
 - Are repository policies, validation commands, and documentation updates named
   when applicable?
+- Are execution-context preconditions stated when they exist, such as a live
+  interactive user or a ban on CI or scheduled invocation?
+- When the skill ingests external content, does it mark that content as data,
+  not instructions, and say to surface instruction-like content rather than obey
+  it?
 
 Fail when the skill could be interpreted as several unrelated tools or when
 placement depends on hidden user preference.
@@ -153,7 +197,38 @@ Remedy:
 - Ask for missing placement or scope decisions before writing files.
 - Narrow the skill to one reusable capability or split distinct capabilities.
 
-### 4. Information Hierarchy
+### 4. Rule Form
+
+Pass when each rule's form matches the failure it prevents.
+
+Check:
+
+- For wrong-shaped output, does the skill give a positive recipe or template
+  stating what the output is, with required slots for omitted elements?
+- For rule-skipping under pressure, is any prohibition paired with the positive
+  target and the reason?
+- For condition-dependent behavior, is the rule keyed to an observable
+  predicate?
+- Is each negation rewritten positively or kept as a hard guardrail with scoped
+  exceptions and the positive target inlined?
+- Are nuance clauses and exemption clauses removed so edge cases do not invite
+  improvisation?
+- When the skill must refuse predictable off-contract requests, is the refusal
+  scripted with a legitimate alternative?
+- Does imperative intensity match skill type: strong commitment devices for
+  discipline skills, plain clarity for reference skills?
+
+Fail when a shaping problem is patched with a prohibition, a prohibition stands
+alone without its positive target, or nuance and exemption clauses give the
+agent a negotiation opening.
+
+Remedy:
+
+- Restate the rule in the form matched to its failure.
+- For the behavioral evidence loop that classifies an observed failure, hand
+  off to `skill-gardening`.
+
+### 5. Information Hierarchy
 
 Pass when the agent sees the primary tier first — the workflow when the skill
 has steps, the rule set when it is all reference — and reads deeper material
@@ -171,8 +246,15 @@ Check:
   rather than scattered across the file?
 - Is reference shared by several skills kept in one home — an external
   reference file or a reference skill — instead of copied into each?
+- Does shared reference live in a home the intended readers can reach?
+- Are cross-skill dependencies prose invocations by name instead of deep
+  `../other-skill/file.md` paths?
+- Are reference chains one level deep, with `SKILL.md` pointing to a reference
+  and references not chaining onward to further must-read files?
 - Are scripts used for fragile or repeated operations that prose would make
   unreliable?
+- Are scripts used instead of inline code when execution can avoid loading the
+  code into context?
 - Are assets limited to reusable output materials?
 
 Fail when a skill with steps buries them under in-file reference, when required
@@ -188,7 +270,7 @@ Remedy:
 - Regroup scattered material under its concept's heading.
 - Add scripts only where deterministic execution matters.
 
-### 5. Completion Criteria
+### 6. Completion Criteria
 
 Pass when each important step has an observable done condition that demands
 enough legwork.
@@ -204,23 +286,31 @@ Check:
 - Can the agent tell whether the step is done?
 - Does the criterion require the work that matters, not just a summary?
 - Could the agent stop early and still appear compliant?
+- Is any criterion that needs human judgment written as an explicit stop-gate
+  that waits for the human to confirm?
 - Are visible post-completion steps pulling attention away from the current
   step?
+- Are procedural steps the model already knows collapsed to a leading-word
+  reference, with only the local divergence kept?
 - If the skill is all reference, does it state an exhaustiveness bar?
 
 Fail when steps end with vague verbs such as "consider", "understand", "review",
-or "improve" without a checkable result, or when a reference-only skill never
-says how much of its reference a run must cover.
+or "improve" without a checkable result, when human confirmation is self-assessed
+by the agent, when a known procedure is restated as no-op workflow, or when a
+reference-only skill never says how much of its reference a run must cover.
 
 Remedy:
 
 - Sharpen the completion criterion first; it is local and cheap.
+- Turn human-judgment criteria into stop-gates.
+- Collapse pretrained procedures to leading-word references and keep only what
+  diverges from the default.
 - Only if the criterion is irreducibly fuzzy and the rush is actually observed,
   split the sequence so later work is hidden behind a real context boundary — a
   user-invoked hand-off or a subagent dispatch; an inline call leaves the later
   steps in context and clears nothing.
 
-### 6. Progressive Disclosure
+### 7. Progressive Disclosure
 
 Pass when disclosure follows branches, not a desire to make the top file look
 short.
@@ -241,7 +331,32 @@ Remedy:
 - Strengthen the pointer before inlining everything back.
 - Split by branch when separate branches make the top-level workflow unstable.
 
-### 7. Leading Words
+### 8. Cross-Context Artifacts
+
+Pass when material that crosses a context boundary is self-contained.
+
+Check:
+
+- Do outputs written for another agent or later session inline everything the
+  reader needs?
+- Do subagent prompts restate verbatim every safety or scope rule the subagent
+  must obey?
+- When output shape matters, does the skill ship a template that ends with a
+  quality bar the agent checks before finishing?
+- Does long-running or risky delegated work carry task-specific STOP conditions?
+- Do artifacts that can go stale carry their own staleness marker, such as the
+  commit they were planned against?
+
+Fail when a handoff artifact depends on the writer's context, or a subagent
+prompt assumes inherited rules.
+
+Remedy:
+
+- Inline what the artifact needs.
+- Re-transmit rules verbatim.
+- Add the template's quality bar.
+
+### 9. Leading Words
 
 Pass when compact concepts anchor behavior without repeating the same meaning in
 many places.
@@ -272,7 +387,7 @@ Remedy:
   rather than abandoning the technique.
 - Delete repeated explanations once the leading word carries them.
 
-### 8. Pruning
+### 10. Pruning
 
 Pass when every line has a current job and every behavior has one source of
 truth.
@@ -284,23 +399,32 @@ Check:
 - Is the same rule stated elsewhere?
 - Is the line a no-op because the agent would already do it?
 - Has old process sediment remained after the workflow changed?
+- Is each omission deliberate: filled, or left open as an explicit branch,
+  rather than silently delegated to the agent's priors?
+- Is sprawl judged against load frequency, with the harshest bar for
+  always-loaded descriptions and the loosest for on-demand references?
+- Is a mandated template section kept thin or empty as boilerplate?
 - Is the file sprawling even after duplication and sediment are removed?
 
 Fail when background, reassurance, generic best practice, or stale process text
-survives because removing it feels risky.
+survives because removing it feels risky, or when undecided omissions silently
+delegate decisions to the agent's priors.
 
 Remedy:
 
 - Run the no-op test sentence by sentence and delete the failing sentence
   whole; most prose that fails should go, not be rewritten.
-- The no-op test is model-relative: settle a contested no-op by forward-testing
-  the skill, not by debate.
+- The no-op test is model-relative: settle a contested no-op by a forward-test,
+  not debate — behavioral verification is owned by the review checklist's
+  Validate step.
+- Decide each silence: fill it or name it as an open branch.
 - Keep one authoritative location for each rule.
+- Delete boilerplate template sections that fail the no-op test.
 - Move live but branch-specific material behind pointers.
 - Split by invocation or sequence only when the split reduces context or
   premature-completion risk.
 
-### 9. Runtime Fit
+### 11. Runtime Fit
 
 Pass when the skill follows the target runtime's required structure while
 preserving the agreed source of truth.
@@ -343,6 +467,17 @@ The rubric must catch these failures:
   nothing versus the default.
 - A user-invoked skill converted to model invocation only to relieve cognitive
   load, removing a human gate that was there on purpose.
+- A description that summarizes the workflow, letting the agent skip the body.
+- A shaping problem patched with "never do X", making the output worse.
+- "Don't X unless it matters" — a nuance clause that reopens negotiation.
+- A subagent prompt that assumes the parent's rules are inherited.
+- A handoff plan that references "the pattern discussed above".
+- A mandated section kept empty to satisfy a template.
+- A workflow of steps that restates a procedure the model already holds.
+- A completion criterion needing human confirmation but written as
+  self-assessed.
+- Two sibling skills whose descriptions are near-duplicates, splitting
+  invocations.
 
 ## Finding Format
 
