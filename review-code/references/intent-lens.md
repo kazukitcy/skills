@@ -1,7 +1,7 @@
 # Review Code: Intent Conformance
 
 > Whether the change actually does what it set out to do: every stated
-> requirement implemented, nothing beyond the stated scope, and the diff matching
+> requirement implemented, out-of-scope changes surfaced, and the diff matching
 > its declared purpose. Severity, confidence, evidence, and output format live in
 > references/shared-rubric.md — read it too.
 
@@ -40,11 +40,27 @@ intent you inferred from the same diff.
   did not ask for. Flag it so a reviewer can confirm it was meant to ride along.
 - Contradiction: the diff does the opposite of, or something materially different
   from, what the intent describes.
+- Unsubstantiated self-claims: the description asserts a property of the change
+  itself — "adds a regression test", "backwards compatible", "behind a feature
+  flag", "no API change" — with no corresponding evidence in the diff; check
+  the claim against the final diff, not the narrative (descriptions are often
+  written before the diff settled).
+- Unrequested generality: new configuration options, parameters, abstraction
+  layers, or a more general API than the stated task needs — a scope-creep
+  variant common in generated code; flag the added surface, not the style.
 - Silent scope reduction: the intent promises X, the diff quietly delivers less —
   a case stubbed, a `TODO` left, a flag left off — without saying so.
 - Acceptance-criteria gaps: explicit acceptance criteria or a checklist in the
-  intent with no evidence in the change that they are met (route "no test" to the
-  tests lens; flag here a criterion neither implemented nor addressed).
+  intent with no code in the change addressing them — map each criterion to the
+  code that satisfies it, and flag a criterion neither implemented nor addressed
+  (route "no test" to the tests lens; a criterion not verifiable from the diff,
+  like a performance target or manual QA step, goes under Notes as needing
+  manual verification, not as a finding).
+- Tangled change: the diff bundles two or more separable, independently
+  revertable changes the intent presents as one — e.g. a behavior fix inside a
+  large rename or format pass; report as a P3 suggesting a split only when the
+  mixing obscures review or revert of the behavior-carrying part, not for
+  routine multi-file work on a single task.
 - Blocking deferral: the intent explicitly defers work to a follow-up ("auth in
   PR 2", "validation later") but the diff already exposes the surface or writes
   the data that makes the deferred work non-optional now — a new route reachable
@@ -64,6 +80,10 @@ intent you inferred from the same diff.
 - New files or large hunks with no obvious tie to any stated requirement.
 - Requirements about error handling, limits, or edge cases — easy to state in the
   intent and easy to skip in the code.
+- Lowered coverage thresholds or disabled lint/CI steps in a change whose
+  intent says nothing about tests or CI — scope creep that suppresses the
+  checks that would catch the change's other gaps (an individual test deleted,
+  skipped, or weakened is the tests lens's concern).
 - A change labeled "refactor", "cleanup", "rename", or "no behavior change":
   verify the diff really has none — altered return values or defaults, removed
   or relaxed validation, reordered error handling, changed branching. A behavior
