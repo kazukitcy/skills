@@ -62,6 +62,12 @@ Prioritize P0–P2 findings. Report confidence high or medium only.
 confidence high: code evidence and path are clear; existing protections checked.
 confidence medium: evidence exists but some uncertainty in call path or runtime conditions.
 A low-confidence hypothesis is not a finding: put it under Assumptions checked instead.
+A question for the author is not a finding either: if you must ask whether
+behavior is intended, record it under Assumptions checked, not Findings.
+
+Severity rates the impact of the failure, not your confidence in the finding: a
+certain style nit is still a P3, and a medium-confidence auth bypass is still a
+P1. Never inflate severity to draw attention to a finding.
 
 ## Calibration
 
@@ -98,9 +104,15 @@ genuinely relevant to the change's purpose):
 - Regex denial-of-service or regex injection unless an attacker controls the
   pattern itself on a hot path.
 - Findings in test-only, fixture, example, or documentation files — unless the
-  change ships those artifacts to production or they encode a real credential.
+  change ships those artifacts to production, they encode a real credential, or
+  the finding is the tests lens's own concern (a wrong assertion, a test that
+  cannot fail, missing coverage of changed behavior).
 - Missing audit logs, missing metrics, or generic defense-in-depth with no
   concrete exploit or failure path (at most a P3, usually Notes).
+- Anything a repo-configured linter, formatter, or type checker already reports
+  or auto-fixes — tooling owns those; do not restate them as review findings.
+- Findings in generated code or lockfiles — review the generator or the source
+  of truth, not its output (test snapshots stay with the tests lens).
 
 ### Trust & identity precedents
 
@@ -138,6 +150,11 @@ genuinely relevant to the change's purpose):
 Before returning, re-read each finding and confirm it is:
 
 - tied to a concrete code location in or near the change,
+- built on code as it exists **after** the change — a finding that quotes a
+  deleted line, misreads unchanged context as new, or misquotes the snippet is
+  dropped, not patched up,
+- not already fixed or handled by another hunk of the same change — read the
+  whole diff before blaming one hunk,
 - plausible under a real runtime, exploit, regression, or rollout scenario,
 - not already prevented by an existing guard, test, constraint, or framework behavior,
 - actionable, with a fix or test specific enough to act on,
