@@ -24,6 +24,10 @@ Completion criterion: the review target and placement contract are explicit.
   modes, and remedies rather than text to summarize.
 - Check that each important source relationship appears as a criterion,
   diagnostic question, or explicit non-applicability note.
+- Check that engine-, version-, or API-specific behavior claims taken from
+  research are verified against primary documentation or an adversarial
+  fact-check before adoption (researched sources return plausible but wrong
+  specifics).
 - Confirm attribution or license notes are present when the skill adapts external
   material.
 
