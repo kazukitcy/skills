@@ -137,6 +137,8 @@ Stop and reconsider when any of these thoughts appear:
 Use these when they are available in the active runtime; otherwise apply the
 templates in `references/output-templates.md` directly.
 
+- `skill-gardening` — when a lesson classifies to the skill tier, run its
+  creation gate (control check, extend-before-add) before any drafting
 - `skill-writer` — rubric and checklist when the destination is a new or revised skill
 - `ast-grep-practice` — writing and testing lint rules
 - The runtime configuration skill named in the runtime reference — when the destination is runtime enforcement
