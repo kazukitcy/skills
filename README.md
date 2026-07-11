@@ -61,6 +61,12 @@ backed by a mode workflow and reference files under
 | --- | --- | --- |
 | [test-engineering](./test-engineering) | Mode-routed test design and assessment: test cases from specs, bug-to-regression tests, robustness/fuzz planning, suite diagnostics, test strategy review, and release gates. | `apm install -g kazukitcy/skills/test-engineering` |
 
+### Delegation
+
+| Skill | Description | Install |
+| --- | --- | --- |
+| [codex-delegate](./codex-delegate) | Delegate background work to Codex via `codex exec` with file-based results, and collect, verify, or recover such runs. | `apm install -g kazukitcy/skills/codex-delegate` |
+
 ### Rust
 
 | Skill | Description | Install |

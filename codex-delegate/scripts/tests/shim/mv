@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -u
+
+/bin/mv "$@" || exit $?
+
+if [ -n "${CODEX_MV_CORRUPT_DEST:-}" ]; then
+  last=""
+  for arg in "$@"; do last=$arg; done
+  if [ "$last" = "$CODEX_MV_CORRUPT_DEST" ]; then
+    /bin/rm -f "$last" || exit $?
+    /bin/mkdir "$last" || exit $?
+  fi
+fi

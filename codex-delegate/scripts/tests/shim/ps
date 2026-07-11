@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+set -u
+printf '%s\n' "$*" >> "${CODEX_PS_LOG:?}"
+case "${CODEX_PS_MODE:-real}" in
+  real) exec /bin/ps "$@" ;;
+  success) printf '%s\n' "${CODEX_PS_COMM:-codex}" ;;
+  empty) : ;;
+  fail) exit 1 ;;
+  *) exit 2 ;;
+esac

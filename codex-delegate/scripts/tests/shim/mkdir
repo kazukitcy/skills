@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -u
+[ -n "${CODEX_MKDIR_LOG:-}" ] && printf '%s\n' "$*" >> "$CODEX_MKDIR_LOG"
+if [ -n "${CODEX_MKDIR_RACE_PATH:-}" ]; then
+  last=""
+  for arg in "$@"; do last="$arg"; done
+  if [ "$last" = "$CODEX_MKDIR_RACE_PATH" ] && [ ! -d "$last" ]; then
+    /bin/mkdir "$last" || exit $?
+    exit 1
+  fi
+fi
+exec /bin/mkdir "$@"

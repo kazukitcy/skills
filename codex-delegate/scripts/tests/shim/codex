@@ -1,0 +1,102 @@
+#!/usr/bin/env bash
+set -u
+
+out=""
+index=0
+printf 'argc=%s\n' "$#" >> "${CODEX_SHIM_MARKERS:?}/shim-argv"
+for arg in "$@"; do
+  printf -v encoded '%q' "$arg"
+  printf 'argv[%s]=%s\n' "$index" "$encoded" >> "$CODEX_SHIM_MARKERS/shim-argv"
+  index=$((index + 1))
+done
+
+while [ "$#" -gt 0 ]; do
+  if [ "$1" = "-o" ] && [ "$#" -ge 2 ]; then
+    out="$2"
+    shift 2
+  else
+    shift
+  fi
+done
+
+[ -n "$out" ] || exit 90
+jobdir=$(dirname "$out")
+printf '%s\n' "$$" >> "$CODEX_SHIM_MARKERS/shim-invoked"
+printf '%s\n' "$$" > "$CODEX_SHIM_MARKERS/shim-pid"
+if [ -f "$jobdir/codex.pid" ] && [ "$(cat "$jobdir/codex.pid" 2>/dev/null)" = "$$" ]; then
+  : > "$CODEX_SHIM_MARKERS/pub-ok-$$"
+else
+  : > "$CODEX_SHIM_MARKERS/pub-fail-$$"
+fi
+
+thread_started() {
+  printf '%s\n' '{"type":"thread.started","thread_id":"shim-thread"}'
+}
+
+complete() {
+  thread_started
+  printf '%s\n' 'shim final message' > "$out"
+  printf '%s\n' '{"type":"turn.completed","usage":{}}'
+}
+
+wait_for_release() {
+  while [ ! -e "$CODEX_SHIM_MARKERS/release" ]; do
+    sleep 0.1
+  done
+}
+
+mode=${CODEX_SHIM_MODE:-complete}
+case "$mode" in
+  complete)
+    complete
+    exit 0
+    ;;
+  complete-exit-67)
+    complete
+    exit 67
+    ;;
+  hang-with-session)
+    trap 'exit 143' TERM
+    thread_started
+    : > "$CODEX_SHIM_MARKERS/shim-started"
+    wait_for_release
+    exit 0
+    ;;
+  hang-ignore-term)
+    trap 'printf "%s\n" TERM >> "$CODEX_SHIM_MARKERS/term-ack"' TERM
+    thread_started
+    : > "$CODEX_SHIM_MARKERS/shim-started"
+    wait_for_release
+    exit 23
+    ;;
+  no-session-exit)
+    printf '%s\n' '{"type":"garbage"}'
+    exit 1
+    ;;
+  no-session-hang)
+    trap 'exit 143' TERM
+    : > "$CODEX_SHIM_MARKERS/shim-started"
+    wait_for_release
+    exit 0
+    ;;
+  die-early)
+    thread_started
+    exit 1
+    ;;
+  result-no-event)
+    thread_started
+    printf '%s\n' 'shim result without completion' > "$out"
+    exit 0
+    ;;
+  exit-127-on-term)
+    trap 'exit 127' TERM
+    thread_started
+    : > "$CODEX_SHIM_MARKERS/shim-started"
+    wait_for_release
+    exit 0
+    ;;
+  *)
+    printf 'unknown CODEX_SHIM_MODE: %s\n' "$mode" >&2
+    exit 91
+    ;;
+esac
