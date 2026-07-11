@@ -78,6 +78,10 @@ The evaluation model must preserve these concepts and relationships:
   agent's priors, so omissions are filled, or left open as an explicit branch.
 - Rule form: the rhetorical form of a rule must match the failure it prevents;
   prohibitions cure discipline violations and worsen shaping problems.
+- Predicate set: rules that branch on the same observable state are strict
+  only as a set — either mutually exclusive and exhaustive, or an ordered
+  first-match list with a default; an unmapped reachable state is negative
+  space.
 - Cross-context artifact: output produced for a reader outside the current
   context must be self-contained because pointers only work for readers who
   share the writer's context.
@@ -209,6 +213,18 @@ Check:
   target and the reason?
 - For condition-dependent behavior, is the rule keyed to an observable
   predicate?
+- When several rules branch on the same observable state, does the set
+  resolve every reachable state deterministically — either mutually
+  exclusive and exhaustive predicates, or an ordered first-match list
+  with explicit precedence and a default — with any unmapped state
+  handled by criterion 10's negative-space test?
+- Before a replacement or retry (relaunch, re-run, fresh retry) can
+  create effects that conflict with the attempt it replaces, does the
+  rule require proof the previous attempt terminated, or another
+  exclusivity guarantee such as cancellation, fencing, or idempotency?
+- Is any automatically triggered destructive or irreversible recovery
+  action keyed to a predicate that excludes healthy states, or routed
+  through a stop-gate when no such predicate exists?
 - Is each negation rewritten positively or kept as a hard guardrail with scoped
   exceptions and the positive target inlined?
 - Are nuance clauses and exemption clauses removed so edge cases do not invite
@@ -219,12 +235,23 @@ Check:
   discipline skills, plain clarity for reference skills?
 
 Fail when a shaping problem is patched with a prohibition, a prohibition stands
-alone without its positive target, or nuance and exemption clauses give the
-agent a negotiation opening.
+alone without its positive target, nuance and exemption clauses give the
+agent a negotiation opening, branching rules resolve the same state
+ambiguously (neither exclusive predicates nor explicit precedence),
+a replacement action can create effects conflicting with a possibly-live
+attempt, or an automatic destructive action fires on a signal that also
+matches a healthy state.
 
 Remedy:
 
 - Restate the rule in the form matched to its failure.
+- Rewrite ambiguous branching rules as mutually exclusive, exhaustive
+  predicates or as one ordered, first-match-wins table with a default;
+  route unmapped states through criterion 10's negative-space test.
+- Give replacement and retry actions a termination proof or another
+  exclusivity guarantee before they can create conflicting effects.
+- Key automatic destructive recovery to a predicate that excludes healthy
+  states, or convert it to a stop-gate.
 - For the behavioral evidence loop that classifies an observed failure, hand
   off to `skill-gardening`.
 
@@ -471,6 +498,12 @@ The rubric must catch these failures:
 - A workflow of steps that restates a procedure the model already holds.
 - A completion criterion needing human confirmation but written as
   self-assessed.
+- A set of branching predicates that resolves the same state ambiguously
+  or leaves a reachable state unmapped.
+- A retry or relaunch rule that can act concurrently with the attempt it
+  replaces, with no termination proof or exclusivity guarantee.
+- A destructive recovery action auto-triggered by a signal that also
+  matches a healthy state.
 - Two sibling skills whose descriptions are near-duplicates, splitting
   invocations.
 

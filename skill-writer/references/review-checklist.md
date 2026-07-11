@@ -79,6 +79,16 @@ guessing the user's intent.
 - Check that wrong-shaped output gets a recipe or template, discipline failures
   get a scoped prohibition, and condition-dependent behavior gets an observable
   predicate.
+- Where rules branch on the same observable state, check the set resolves
+  every reachable state deterministically — mutually exclusive and
+  exhaustive predicates, or an ordered first-match list with a default —
+  and apply step 11's negative-space test to any unmapped state.
+- Check that replacement or retry rules cannot create effects conflicting
+  with the attempt they replace: proof of termination, or another
+  exclusivity guarantee such as cancellation, fencing, or idempotency.
+- Check that automatically triggered destructive or irreversible recovery
+  actions are keyed to predicates that exclude healthy states, or routed
+  through a stop-gate.
 - Flag nuance clauses and exemption clauses.
 - Check refusals for predictable off-contract requests are scripted with
   legitimate alternatives.
