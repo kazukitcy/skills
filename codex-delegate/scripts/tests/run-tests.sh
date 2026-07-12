@@ -568,6 +568,28 @@ for sig in HUP TERM; do
 done
 assert "92 HUP and TERM terminate and reap tracked runner children" '[ "$signal_ok" -eq 1 ]'
 
+# Post-acceptance: codex-verify-started.sh
+VERIFY="$BACKEND_DIR/codex-verify-started.sh"
+
+new_workspace; make_prompt; capture="$workspace/backend.stdout"
+bash "$EXEC" "$prompt" >"$capture" 2>"$workspace/backend.stderr" & backend_bg=$!; track_pid "$backend_bg"
+wait "$backend_bg"; backend_rc=$?
+run_capture bash "$VERIFY" "$capture" 2
+sed -n '1,5p' "$capture" > "$workspace/captured-announcement"
+sed -n '1,5p' "$stdout" > "$workspace/verified-announcement"
+assert "94 verify-started reprints announcement and session id" '[ "$backend_rc" -eq 0 ] && [ "$rc" -eq 0 ] && cmp -s "$workspace/captured-announcement" "$workspace/verified-announcement" && grep -q shim-thread "$stdout"'
+
+new_workspace; capture="$workspace/backend.stdout"; : > "$capture"
+CODEX_DELEGATE_TEST_ANNOUNCEMENT_POLL_LIMIT=2 run_capture bash "$VERIFY" "$capture"
+assert "95 verify-started reports missing announcement" '[ "$rc" -eq 4 ] && [ ! -s "$stdout" ] && grep -Fq "no announcement in $capture — backend preflight failure (exit 64/66) or wrong capture file; read the file and the backend'\''s stderr" "$stderr"'
+
+new_workspace
+run_capture bash "$VERIFY"
+verify_missing_rc=$rc; verify_missing_stdout_size=$(wc -c < "$stdout"); verify_missing_usage=0; grep -q '^usage: codex-verify-started.sh ' "$stderr" && verify_missing_usage=1
+run_capture bash "$VERIFY" "$workspace/capture" 01
+verify_bad_rc=$rc; verify_bad_stdout_size=$(wc -c < "$stdout"); verify_bad_usage=0; grep -q '^usage: codex-verify-started.sh ' "$stderr" && verify_bad_usage=1
+assert "96 verify-started rejects missing arguments and bad timeout" '[ "$verify_missing_rc" -eq 2 ] && [ "$verify_missing_stdout_size" -eq 0 ] && [ "$verify_missing_usage" -eq 1 ] && [ "$verify_bad_rc" -eq 2 ] && [ "$verify_bad_stdout_size" -eq 0 ] && [ "$verify_bad_usage" -eq 1 ]'
+
 if [ "$failures" -ne 0 ]; then
   printf '%s tests, %s failures\n' "$tests" "$failures" >&2
   exit 1

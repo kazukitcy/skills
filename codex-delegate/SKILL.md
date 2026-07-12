@@ -109,6 +109,9 @@ a preflight exit is classified by the Failure taxonomy.
 
 ## 4. Verify the run started
 
+When a background launch's stdout went to a capture file, run
+`<skill-base-dir>/scripts/codex-verify-started.sh <capture-file>` instead of extracting `job-dir:` by hand. It re-prints the announcement block for recording, then runs the wait itself; exit 4 (no announcement) is the Backend-preflight-failure taxonomy class, while exits 0/1/2/3 keep their step-4 meanings.
+
 Immediately after launch, run
 `<skill-base-dir>/scripts/codex-wait-started.sh <recorded-job-dir>` in the
 foreground; its default timeout is 120 seconds.
