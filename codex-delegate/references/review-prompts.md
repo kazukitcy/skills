@@ -1,11 +1,13 @@
 # Review prompt templates
 
-Two prompt shapes for delegated review runs. Both run through the normal
-launch path (step 3) with `-s read-only`. Fill every `{…}` slot; drop a
-block only when its condition clearly does not apply. The reviewed target
-is described by scope, not by pasting the diff: the run executes `git`
-itself (read-only sandbox permits it), which keeps the prompt small and
-the evidence grounded in the actual tree.
+Two prompt shapes for delegated review runs, plus an empirical variant of
+either. The standard and adversarial shapes run through the normal launch
+path (step 3) with `-s read-only`; their empirical variant (last section)
+runs `-s workspace-write` in a disposable worktree. Fill every `{…}` slot;
+drop a block only when its condition clearly does not apply. The reviewed
+target is described by scope, not by pasting the diff: the run executes
+`git` itself (read-only sandbox permits it), which keeps the prompt small
+and the evidence grounded in the actual tree.
 
 ## Standard code review
 
@@ -107,6 +109,66 @@ without evidence.
 3. Coverage list: the attack angles exercised that came back clean.
 </output_contract>
 ```
+
+## Empirical review (executes to verify)
+
+A variant of either review above for when the strongest findings need
+*running* code, not just reading it — dry-running a state machine, proving a
+serde round-trip, reproducing a claimed race. Launch it with
+`-s workspace-write` in a **disposable git worktree** (see SKILL.md
+"Workspace isolation"), not the shared tree.
+
+Build the prompt from the base review's `<task>`, `<attack_surface>` (if
+adversarial), `<verification>`, `<finding_bar>`, and `<output_contract>`
+blocks unchanged, then **replace** its `<constraints>` block with the
+`<workspace>` block below (the base `READ-ONLY: do not modify …` line would
+otherwise forbid the scratch tests this variant exists to run), and add the
+`<execution>`, `<non_goals>`, and `<stop_conditions>` blocks — a
+workspace-write prompt requires the last two (SKILL.md step 1).
+
+Set `{ABSOLUTE_REPO_ROOT}` in the base `<task>` to the disposable worktree
+path, and `<ref-under-review>` to the exact ref the worktree was created
+from. A linked worktree holds only its own committed snapshot — no other
+checkout's index or uncommitted files — so to review a staged or unstaged
+change the orchestrator must first materialize that snapshot in the
+worktree (e.g. apply the diff there before launch); otherwise the run
+silently reviews the wrong target.
+
+```
+<workspace>
+This workspace is a disposable copy. Nothing in it is ever merged; the
+report is the only deliverable. You MAY edit files, add scratch tests, and
+run the project's build and test commands to verify or refute a finding —
+prefer a five-line test that settles a claim over a paragraph of argument.
+Do not touch anything outside this workspace root. Git refs are off-limits
+(the sandbox denies .git writes); do not commit, stage, or branch.
+</workspace>
+
+<execution>
+For any finding you can settle by running code, do so and quote the command
+and its actual output as the evidence. Loopback socket binds may be denied
+by the sandbox; if a check needs one and it fails to bind, say so and fall
+back to the strongest static argument instead of reporting the bind failure
+as a defect. A compilation error in the reviewed code is always a real
+finding, never a sandbox excuse.
+</execution>
+
+<non_goals>
+Do not fix the code, land changes, or leave anything for a follow-up run —
+scratch edits exist only to produce evidence and are discarded with the
+worktree.
+</non_goals>
+
+<stop_conditions>
+Stop and report if the workspace is not the intended review target (wrong
+ref materialized), or if a required build fails for an environmental reason
+you cannot attribute to the reviewed code.
+</stop_conditions>
+```
+
+Consume it like any read-only review (step 6), with one difference: the
+worktree is thrown away (`git worktree remove --force`) rather than
+collected — the reviewer's scratch edits are not an artifact.
 
 ---
 The adversarial contract adapts the structure of the OpenAI Codex Claude

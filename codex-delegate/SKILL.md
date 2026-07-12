@@ -63,7 +63,11 @@ non-empty `<untrusted_input>` block.
 ## 2. Choose the sandbox
 
 - The task must edit files → `-s workspace-write`.
-- Anything else (review, investigation, analysis) → `-s read-only`.
+- Anything else (review, investigation, analysis) → `-s read-only`. Exception:
+  an *empirical* review that must build or run code to settle its findings
+  gets `-s workspace-write` in a disposable worktree (see "Workspace
+  isolation" below and the empirical-review variant in
+  [references/review-prompts.md](references/review-prompts.md)).
 
 Pass `-s` explicitly. Use bypass flags only inside an externally sandboxed
 environment; otherwise fail and report. Model and effort belong to project
@@ -87,7 +91,39 @@ Two sandbox constraints the task and prompt must account for, even under
   orchestrator re-runs the full verification itself before accepting.
 
 **Done when** the launch command contains exactly one explicit sandbox choice:
-`-s workspace-write` for a write run or `-s read-only` for every other run.
+`-s workspace-write` for a write run or empirical review; `-s read-only` for
+every other run.
+
+### Workspace isolation (optional)
+
+Instead of the shared working tree, a run can get a disposable git worktree
+as its workspace root (`-C <worktree>`). Choose isolation when write runs
+must proceed in parallel, when a kill/resume window must not leave partial
+edits in the shared tree, or when a **review needs to execute things** —
+build, run tests, write probe tests — rather than argue from reading
+(reviewers get `-s workspace-write` on the disposable copy plus an explicit
+contract: the copy is disposable, nothing in it is ever merged, the report
+is the only deliverable). Skip isolation for small serial write runs: each
+worktree starts with a cold build cache, which can dominate a short task.
+
+The orchestrator owns the whole lifecycle with plain git — no wrapper. For a
+write run whose branch is an intended deliverable, create it on a branch:
+
+    git -C <repo> worktree add -b <branch> <path> <base>   # create (outside the sandbox)
+    git -C <worktree> add -A && git -C <worktree> diff --cached   # inspect the run's changes
+    git -C <repo> worktree remove <path>                    # discard (refuses if dirty)
+
+For a review worktree, create it **detached** so no throwaway branch leaks
+(`git worktree remove` deletes the worktree, never the branch `-b` created):
+
+    git -C <repo> worktree add --detach <path> <ref-under-review>
+
+Worktrees share refs with the main checkout, so accepting a write run needs
+no patch transfer: commit inside the worktree (orchestrator-side — the
+worker still cannot touch git, per the constraints above) and the branch is
+immediately visible everywhere. For a review worktree there is nothing to
+collect: read the report, then remove with `--force` since the reviewer's
+scratch edits are meant to be thrown away.
 
 ## 3. Launch in the background
 
