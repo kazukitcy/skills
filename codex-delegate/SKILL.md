@@ -70,6 +70,22 @@ environment; otherwise fail and report. Model and effort belong to project
 policy and Codex config, not the prompt; `-m`/`-e` are deliberate overrides
 limited to policy-allowed values.
 
+Two sandbox constraints the task and prompt must account for, even under
+`workspace-write`:
+
+- Observed sandbox profiles deny `.git` writes even under `workspace-write`,
+  so branch creation, checkout, committing, and staging fail inside the run.
+  Unless the active profile is known to allow ref mutation, create and check
+  out any branch the task needs before launching, and state in the prompt
+  that the branch already exists and git refs are off-limits.
+- Loopback binds may be denied depending on the active sandbox profile
+  (observed intermittent on one host: denied in one run, allowed in others).
+  When verification includes tests that bind sockets, require conditional
+  reporting — "if binds are denied, name the affected suites and confirm
+  everything else passes" — instead of assuming either outcome, and state
+  that a compilation failure is never excusable as a sandbox limitation. The
+  orchestrator re-runs the full verification itself before accepting.
+
 **Done when** the launch command contains exactly one explicit sandbox choice:
 `-s workspace-write` for a write run or `-s read-only` for every other run.
 
@@ -130,6 +146,13 @@ foreground; its default timeout is 120 seconds.
 and entered step 5 or the Failure taxonomy without a concurrent replacement.
 
 ## 5. Collect the result
+
+Run `<skill-base-dir>/scripts/codex-collect.sh <job-dir>` instead of
+hand-typing the predicates below: it prints each attempt's evidence (recorded
+status, result validity, completion event, pid liveness) and a suggested
+verdict (`result-ok` / `recover-from-events` / `died-midflight` / `live` /
+`no-attempt`), read-only. The table below stays authoritative for the
+disposition; the script only classifies.
 
 After the background task exits, select the paths from one printed block. A
 valid result satisfies `[ ! -L ] && [ -f ] && [ -s ]`; a valid events half
