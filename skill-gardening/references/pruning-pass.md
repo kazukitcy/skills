@@ -19,13 +19,24 @@ belongs; replace the others with the concept's leading word (a repeated
 token raises attention on purpose; a repeated meaning is the accident) or
 delete them.
 
-### 2. Relevance -> delete what no longer bears
+### 2. Relevance -> delete or rewrite what no longer bears
 
 For each surviving line: does it still bear on what the skill does? Lines
-lose relevance two ways - they never bore on the task (background,
+lose relevance three ways - they never bore on the task (background,
 marketing, reassurance) or the world drifted (renamed tools, removed
-steps, changed runtimes). Verify named files, flags, and skills still
-exist before keeping a line that depends on them.
+steps, changed runtimes), or a project-level skill's line contradicts its
+host project's observable conventions, often because a generic skill was
+copied into the project and never adapted. Verify named files, flags, and
+skills still exist before keeping a line that depends on them.
+
+For a project-level skill, verify every rule against the project's
+observable reality - code, tests, configuration, and the project
+instruction file (`CLAUDE.md`, `AGENTS.md`, or the runtime's equivalent)
+- and require an established convention, not a lone occurrence. Rewrite
+a conflicting line in this pass to state the project's actual
+convention. If the project documents the opposite intent, such as its
+instruction file recording a migration away from the current pattern,
+keep the line.
 
 ### 3. No-op test -> delete sentences that change nothing
 
