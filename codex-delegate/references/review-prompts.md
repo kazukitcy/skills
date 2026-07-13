@@ -224,8 +224,8 @@ adversarial), `<verification>`, `<finding_bar>`, and `<output_contract>`
 blocks unchanged, then **replace** its `<constraints>` block with the
 `<workspace>` block below (the base `READ-ONLY: do not modify …` line would
 otherwise forbid the scratch tests this variant exists to run), and add the
-`<execution>`, `<non_goals>`, and `<stop_conditions>` blocks — a
-workspace-write prompt requires the last two (SKILL.md step 1).
+`<execution>`, `<non_goals>`, and `<stop_conditions>` blocks — this variant
+requires the last two, mirroring SKILL.md step 1's write-run block set.
 
 Set `{ABSOLUTE_REPO_ROOT}` in the base `<task>` to the disposable worktree
 path, and `<ref-under-review>` to the exact ref the worktree was created

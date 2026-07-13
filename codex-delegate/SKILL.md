@@ -33,14 +33,19 @@ XML-tagged blocks and an explicit output contract.
 
 Required blocks are `<task>` and `<output_contract>` for a read-only lookup.
 A write run requires `<task>`, `<constraints>`, `<non_goals>`, `<verification>`,
-`<output_contract>`, and `<stop_conditions>`. Required blocks are non-empty;
+`<output_contract>`, and `<stop_conditions>`. A design spike uses the write-run
+block set; its `<constraints>` state the report-only contract verbatim — the
+workspace is a disposable copy, nothing in it is ever merged, nothing outside
+the workspace root is touched, and git refs are off-limits: do not commit,
+stage, or branch — and its `<output_contract>` requires the report: what was
+built, what worked, and the design lessons. Required blocks are non-empty;
 other blocks apply as defined below.
 
 - `<task>` — done in one paragraph, the absolute repo root, and file scope.
 - `<constraints>` — restate verbatim every run rule. For write runs, require
-  narrow changes and
-  prohibit destructive cleanup and use of credentials beyond the user's
-  explicit authorization. Rules not written here do not exist for Codex.
+  narrow changes. For write runs and design spikes, prohibit destructive
+  cleanup and use of credentials beyond the user's explicit authorization.
+  Rules not written here do not exist for Codex.
 - `<non_goals>` — what to leave untouched.
 - `<verification>` — project validation commands, or for read-only work the
   grounding rule that every claim cites file:line evidence.
@@ -55,7 +60,11 @@ other blocks apply as defined below.
 For code review, adversarial review, or a before/after review of an
 edited rule-carrying document, build the prompt from
 [references/review-prompts.md](references/review-prompts.md) instead of
-composing the blocks from scratch.
+composing the blocks from scratch. This review-template rule takes
+precedence over the spike shape: a standard or adversarial review that
+must build or run code to settle its findings is the empirical review
+variant, never a design spike — the spike shape applies only to task
+work.
 
 **Done when** the prompt file and required blocks are non-empty, write safety
 and reporting clauses are present, and any external content is fenced in a
@@ -63,12 +72,17 @@ non-empty `<untrusted_input>` block.
 
 ## 2. Choose the sandbox
 
-- The task must edit files → `-s workspace-write`.
-- Anything else (review, investigation, analysis) → `-s read-only`. Exception:
-  an *empirical* review that must build or run code to settle its findings
-  gets `-s workspace-write` in a disposable worktree (see "Workspace
-  isolation" below and the empirical-review variant in
-  [references/review-prompts.md](references/review-prompts.md)).
+Apply the first matching rule:
+
+- A report-only shape — an *empirical* review that must build or run code
+  to settle its findings (see the empirical-review variant in
+  [references/review-prompts.md](references/review-prompts.md)), or a
+  *design spike* that builds a throwaway prototype — → `-s workspace-write`
+  in a disposable worktree (see "Workspace isolation" below). Report-only
+  shapes are not write runs: their edits are scratch and never merged; the
+  report is the only deliverable.
+- Any other task that must edit files (a write run) → `-s workspace-write`.
+- Anything else (review, investigation, analysis) → `-s read-only`.
 
 Pass `-s` explicitly. Use bypass flags only inside an externally sandboxed
 environment; otherwise fail and report. Model and effort belong to project
@@ -89,22 +103,30 @@ Two sandbox constraints the task and prompt must account for, even under
   reporting — "if binds are denied, name the affected suites and confirm
   everything else passes" — instead of assuming either outcome, and state
   that a compilation failure is never excusable as a sandbox limitation. The
-  orchestrator re-runs the full verification itself before accepting.
+  orchestrator re-runs the full verification itself before accepting a
+  write run.
 
 **Done when** the launch command contains exactly one explicit sandbox choice:
-`-s workspace-write` for a write run or empirical review; `-s read-only` for
-every other run.
+`-s workspace-write` for a write run, empirical review, or design spike;
+`-s read-only` for every other run.
 
 ### Workspace isolation (optional)
 
 Instead of the shared working tree, a run can get a disposable git worktree
 as its workspace root (`-C <worktree>`). Choose isolation when write runs
 must proceed in parallel, when a kill/resume window must not leave partial
-edits in the shared tree, or when a **review needs to execute things** —
-build, run tests, write probe tests — rather than argue from reading
-(reviewers get `-s workspace-write` on the disposable copy plus an explicit
-contract: the copy is disposable, nothing in it is ever merged, the report
-is the only deliverable). Skip isolation for small serial write runs: each
+edits in the shared tree, when a **review needs to execute things** —
+build, run tests, write probe tests — rather than argue from reading, or
+when a **design spike must build a throwaway prototype** to settle a
+design question by experiment. The two report-only shapes — empirical
+review and design spike — get
+`-s workspace-write` on the disposable copy plus an explicit contract: the
+copy is disposable, nothing in it is ever merged, and the report — findings
+for a review; what was built, what worked, and the design lessons for a
+spike — is the only deliverable. If spike code later proves worth keeping,
+re-issue it as a clean write run informed by the report: code written under
+a no-merge contract skipped write-run rigor and is not promoted as-is. Skip
+isolation for small serial write runs: each
 worktree starts with a cold build cache, which can dominate a short task.
 
 The orchestrator owns the whole lifecycle with plain git — no wrapper. For a
@@ -114,16 +136,17 @@ write run whose branch is an intended deliverable, create it on a branch:
     git -C <worktree> add -A && git -C <worktree> diff --cached   # inspect the run's changes
     git -C <repo> worktree remove <path>                    # discard (refuses if dirty)
 
-For a review worktree, create it **detached** so no throwaway branch leaks
+For a review or spike worktree, create it **detached** so no throwaway
+branch leaks
 (`git worktree remove` deletes the worktree, never the branch `-b` created):
 
-    git -C <repo> worktree add --detach <path> <ref-under-review>
+    git -C <repo> worktree add --detach <path> <ref-under-review>   # for a spike, the base ref to prototype on
 
 Worktrees share refs with the main checkout, so accepting a write run needs
 no patch transfer: commit inside the worktree (orchestrator-side — the
 worker still cannot touch git, per the constraints above) and the branch is
-immediately visible everywhere. For a review worktree there is nothing to
-collect: read the report, then remove with `--force` since the reviewer's
+immediately visible everywhere. For a review or spike worktree there is
+nothing to collect: read the report, then remove with `--force` since the
 scratch edits are meant to be thrown away.
 
 ## 3. Launch in the background
@@ -219,13 +242,19 @@ the corresponding taxonomy remedy.
 
 ## 6. Verify before accepting
 
-Check the result against `<output_contract>`. For writes, inspect `git status`,
+Check the result against `<output_contract>`. For write runs, inspect `git status`,
 review the full diff, and run project validation yourself; the run's claim is
 not evidence. For read-only reviews, verify each acted-on finding's cited
 evidence against its cited source — the working tree for tree paths,
 `git show REF:PATH` for git locators, the inert copies for a neutralized
 document-edit review — plus every Major-or-equivalent finding whether acted
-on or not.
+on or not. For a spike, judge the report against its design question and
+spot-check its load-bearing claims in the worktree before removing it; the
+scratch diff is never validated for acceptance, and for a spike "fails
+validation" below means failing these report checks — a prototype that
+fails project checks while answering the design question is a reportable
+result, not a rejection. A kept idea re-enters as a clean write run (see
+"Workspace isolation").
 
 A result that violates its output contract, fails validation, or fails review
 is rejected at acceptance even when the process exited 0. Apply only that class's
