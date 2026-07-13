@@ -71,6 +71,11 @@ instructions.
      prompts restate rules verbatim; plans inline what they need.
    - Read the draft for negative space: decide each omission — fill it, or
      leave it open as an explicit branch.
+   - When adding a new branch, shape, or category to an existing rule
+     document, enumerate every rule keyed on its sibling values — routing
+     predicates, prompt or output contracts, acceptance rules, and
+     cross-referenced files — and decide each surface in the same revision
+     (review catches stranded surfaces only one round at a time).
    - Keep one source of truth for each rule or concept.
    - Remove background explanation unless it changes agent behavior.
    - Continue when the draft can be reviewed without relying on unstated intent.
