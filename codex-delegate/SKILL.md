@@ -106,7 +106,7 @@ the rule list above.
 
 ### Workspace isolation
 
-Instead of the shared working tree, a run can get a disposable git worktree
+Instead of the shared working tree, a run can get a disposable worktree
 as its workspace root (`-C <worktree>`). Choose isolation when write runs must
 proceed in parallel or when a kill/resume window must not leave partial edits
 in the shared tree. It is required for the two report-only shapes: an
@@ -114,7 +114,7 @@ in the shared tree. It is required for the two report-only shapes: an
 probe tests — to settle its findings rather than argue from reading, and a
 **design spike** that must build a throwaway prototype to settle a design
 question by experiment. These report-only shapes are not write
-runs. Both use `-s workspace-write` on the disposable copy and carry this
+runs. Both use `-s workspace-write` on the disposable worktree and carry this
 contract:
 
 > This workspace is a disposable copy. Nothing in it is ever merged. Nothing
@@ -173,9 +173,9 @@ Record together the task id and exact printed `job-dir`, `last-message`,
 `events`, `stderr`, and `status` paths from the announcement block. All later
 predicates use that same block, never glob, mtime, or generic filenames. These
 are one-way facts: printed paths mean preflight passed; `codex.pid` means the
-inner reached its exec attempt; a status file means the child was reaped and
-its code is authoritative; an `exit:` line means the wrapper survived to
-report and did not take the silent-TERM branch.
+child published its PID and reached its exec attempt; a status file means the
+child was reaped and its code is authoritative; an `exit:` line means the
+wrapper survived to report and did not take the silent-TERM branch.
 
 **Done when** all five printed paths and the task id are recorded together, or
 a preflight exit is classified by the Failure taxonomy.
@@ -196,7 +196,7 @@ taxonomy class, while exits 0/1/2/3 keep their step-4 meanings.
 - Exit 1: pure timeout; it proves nothing about child liveness and never
   authorizes another launch. Apply Recovery's normalized liveness classifier
   to `codex.pid`. Keep a live child as the sole run; an indeterminate state
-  requires the full grace re-check before any fresh launch.
+  requires the launch-authorization recheck before any fresh launch.
 - Exit 2: invalid invocation (arity, job directory, or timeout syntax/range).
   Fix the invocation and rerun the wait script for the same job.
 - Exit 3: the recorded child is dead and a final session-id check failed. This
@@ -214,11 +214,11 @@ verdict (`result-ok` / `recover-from-events` / `died-midflight` / `live` /
 `no-attempt`), read-only. The table below stays authoritative for the
 disposition; the script only classifies.
 
-After the background task exits, select the paths from one printed block. A
+After the background task exits, select the paths from one announcement block. A
 valid result satisfies `[ ! -L ] && [ -f ] && [ -s ]`; a valid events half
 satisfies `[ ! -L ] && [ -f ]` before grepping the whole file for
 `"type":"turn.completed"`. Never pair halves from different launch or resume
-blocks. Read the recorded status only from that block's `status:` path. Apply
+announcement blocks. Read the recorded status only from that announcement block's `status:` path. Apply
 the first matching row:
 
 | Order | Predicate | Disposition |
@@ -229,8 +229,8 @@ the first matching row:
 | 4 | No same-attempt completion event, and either the result is invalid or recorded status is missing/non-zero | Died mid-flight; use the Failure taxonomy's resume remedy. |
 
 This ordered table is exhaustive; first match wins. Launched output is
-two-phase: the five-path announcement comes before launch, followed after reap
-by `exit:` and, for resume, one of `promoted:`, `promotion-failed:`, or
+two-phase: the five-path announcement block comes before launch, followed
+after reap by `exit:` and, for resume, one of `promoted:`, `promotion-failed:`, or
 `unpromoted: incomplete-evidence`. Announcement-only output with absent status
 is the TERM-silent/killed phase and never row 2. A terminal `exit: 143` with a
 present status is an ordinary recorded completion, not the silent branch.
@@ -267,29 +267,30 @@ accepted, or rejection is recorded and its taxonomy remedy begins.
 
 Classify once and apply only the listed remedy, using the recorded task id,
 exit code, stdout phase, and invocation paths. A remedy may launch fresh work
-only after the full ordered predicate is rechecked after at least five seconds:
-lock, completed-pair scan, normalized `codex.pid` liveness, session, then cap.
+only after the launch-authorization recheck: the full ordered predicate,
+rechecked after at least five seconds — lock, completed-pair scan, the
+normalized liveness classifier on `codex.pid`, session, then cap.
 `codex-wait-started.sh` exit 3 is the sole single-shot substitute; exit 1 is
 not launch authorization.
 
 | Failure class | Observable predicate | Sole remedy |
 | --- | --- | --- |
-| Backend preflight failure | Empty stdout with exec/resume exit 64 (usage/argument) or 66 (environment, claim, or staging). | Read stderr, fix the invocation or environment, and rerun the backend. A pre-change job without a valid non-symlink `.claim` cannot be resumed: manually collect its existing result/events/rollout, then use a fresh claimed directory if more work is required; never add `.claim` retroactively. |
+| Backend preflight failure | Empty stdout with exec/resume exit 64 (usage/argument) or 66 (environment, claim, or staging). | Read stderr, fix the invocation or environment, and rerun the backend. A pre-change job without valid `.claim` lineage (a non-symlink directory) cannot be resumed: manually collect its existing result/events/rollout, then use a fresh claimed directory if more work is required; never add `.claim` retroactively. |
 | Live process refusal | Exit 65 with `refused: live-process`. | Keep the recorded child as the sole run and monitor it. Reclassify before any later remedy; do not launch from this refusal alone. |
 | Active resume refusal | Exit 65 with `refused: lock-held`. | Treat the lock owner as the active resume, monitor/collect that invocation, and do not start another. |
 | Stale resume lock | Exit 65 with `refused: stale-lock`. | Verify no resume is active, remove `resume.lock` manually, then rerun resume; it never auto-reclaims the lock. |
-| Attempt cap | Exit 65 with `refused: cap-reached`. | Stop resuming this directory. After the launch-authorization recheck, retry fresh in a new claimed directory or stop and report. |
-| Missing session | Exit 65 with `refused: no-session`. | Do not resume. Authorize a fresh launch only via wait-started exit 3 or the full grace recheck; otherwise report the unresolved state. |
-| Launch failure / INDETERMINATE | Paths printed, no session id, and the wrapper is gone. Missing `codex.pid` is INDETERMINATE, not proof of death. | Read the recorded stderr/events. Launch fresh only after wait-started exit 3 or the full grace recheck confirms no live/completed work; otherwise keep the state unresolved. |
-| Died mid-flight | Step 5 row 4. | Resume with `codex-resume-backend.sh`. After two resume attempts for the same job directory fail to produce a result, stop resuming and retry as a fresh launch in a new job directory. |
+| Attempt cap | Exit 65 with `refused: cap-reached`. | Stop resuming this directory. After the launch-authorization recheck, retry fresh in a fresh claimed directory or stop and report. |
+| Missing session | Exit 65 with `refused: no-session`. | Do not resume. Authorize a fresh launch only via wait-started exit 3 or the launch-authorization recheck; otherwise report the unresolved state. |
+| Launch failure / INDETERMINATE | Paths printed, no session id, and the wrapper is gone. Missing `codex.pid` is INDETERMINATE, not proof of death. | Read the recorded stderr/events. Launch fresh only after wait-started exit 3 or the launch-authorization recheck confirms no live/completed work; otherwise keep the state unresolved. |
+| Died mid-flight | Step 5 row 4. | Resume with `codex-resume-backend.sh`. After two resume attempts for the same job directory fail to produce a result, stop resuming and retry as a fresh launch in a fresh job directory. |
 | Promotion failure | Exit 67 with `promotion-failed:`. | Preserve and inspect the numbered `last-message-resume-N.md` and its same-attempt events; the result survives there. Fix the canonical-path/environment fault, then rerun resume so its completed-pair scan can promote. A genuine child exit 67 instead has `exit: 67` without `promotion-failed:` and is classified by step 5. |
-| Rejected at acceptance | Step 6 rejection, or unrecoverable step 5 row 3. | Retry once, fresh in a new directory with a tightened prompt. Project instructions set retry effort and takeover. Preserve required non-author review by recording it blocked and holding acceptance instead of taking it over. |
+| Rejected at acceptance | Step 6 rejection, or unrecoverable step 5 row 3. | Retry once, fresh in a fresh job directory with a tightened prompt. Project instructions set retry effort and takeover. Preserve required non-author review by recording it blocked and holding acceptance instead of taking it over. |
 
 A completed turn takes the fresh-retry route; only mid-flight death resumes.
 Cancellation is TERM-only: the backend forwards each received TERM to the
 published child once. INT-based cancellation is unsupported for this launch
 shape. After cancellation, wait for the wrapper/background task to exit and
-classify its recorded block with step 5.
+classify its recorded output with step 5.
 
 ## Recovery
 
@@ -297,22 +298,23 @@ classify its recorded block with step 5.
   `<skill-base-dir>/scripts/codex-resume-backend.sh [-f FOLLOWUP|-] [--] <job-dir>`
   in the background. `-f FOLLOWUP|-` supplies a delta; omission uses the default.
   Resume takes no `-s`/`-C`, and results stay in the same directory; launch
-  fresh to change sandbox or root. Classify stdout by phase. A launched block
-  has the common `job-dir:`, numbered `last-message:`, `events:`, `stderr:`, and
-  `status:` announcement, followed when reportable by
+  fresh to change sandbox or root. Classify stdout by phase. Launched output
+  has the common five-path announcement block (`job-dir:`, numbered
+  `last-message:`, `events:`, `stderr:`, `status:`), followed when reportable by
   `promoted:`/`promotion-failed:`/`unpromoted:` and `exit:`. A one-phase
-  already-completed block has `job-dir:`, `already-completed:`, `events:`, and
-  optionally `recovered-from:`; a refusal has `job-dir:` plus `refused:`.
-  Record exactly the paths printed by that block, then apply steps 5–6. The
-  backend owns the completion re-check and attempt numbering.
-- **Alive but silent:** classify child liveness from the job's `codex.pid`; the
-  wrapper/background-task state is a separate observation. `kill -0` failure
-  means dead. For a kill-0-live PID, normalize the basename of
+  already-completed resume output has `job-dir:`, `already-completed:`,
+  `events:`, and optionally `recovered-from:`; a refusal has `job-dir:` plus
+  `refused:`.
+  Record exactly the paths printed by that output, then apply steps 5–6. The
+  backend owns the completion recheck and attempt numbering.
+- **Alive but silent:** apply the normalized liveness classifier to the job's
+  `codex.pid`; the wrapper/background-task state is a separate observation.
+  `kill -0` failure means dead. For a kill-0-live PID, normalize the basename of
   `ps -o comm=`: a name containing `codex` or equal to `sh` means live; failed
   or empty `ps` output also fails closed as live; any other basename means PID
   reuse/dead. A Codex installation that execs a differently named resident
-  worker is unsupported by this classifier. A missing `codex.pid` is
-  INDETERMINATE, not dead, and requires the launch-authorization grace recheck.
+  process is unsupported by this classifier. A missing `codex.pid` is
+  INDETERMINATE, not dead, and requires the launch-authorization recheck.
   If the child is live, the background task is still running, and the recorded
   events file's byte size is unchanged across two checks at least 10 minutes
   apart, mark the run `SUSPECTED stall`. Read the events tail, report elapsed
@@ -320,7 +322,7 @@ classify its recorded block with step 5.
   is not a kill condition: Codex has no heartbeat, and long reasoning or a long
   command matches the predicate. Stop only on the user's explicit instruction
   or a project-defined deadline; send TERM, wait for the task to exit, and
-  apply step 5 to this invocation's recorded block.
+  apply step 5 to this invocation's recorded output.
 - **Run not launched by this skill** (plugin/app-server job with no `-o`
   file): its final message lives in the session rollout
   (`~/.codex/sessions/<date>/rollout-*.jsonl`). Locate the rollout by

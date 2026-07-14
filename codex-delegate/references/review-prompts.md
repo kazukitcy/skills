@@ -216,7 +216,7 @@ A variant of the standard or adversarial review for when the strongest
 findings need
 *running* code, not just reading it — dry-running a state machine, proving a
 serde round-trip, reproducing a claimed race. Launch it with
-`-s workspace-write` in a **disposable git worktree** (see SKILL.md
+`-s workspace-write` in a **disposable worktree** (see SKILL.md
 "Workspace isolation"), not the shared tree.
 
 Build the prompt from the base review's `<task>`, `<attack_surface>` (if
