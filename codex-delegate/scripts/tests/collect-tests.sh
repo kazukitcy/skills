@@ -144,6 +144,17 @@ bash "$COLLECT" "$job" >/dev/null 2>&1
 check "unclaimed directory exits 66" "66" "$?"
 rm -rf "$job"
 
+# A trailing slash must not dereference a symlinked job directory.
+real_job=$(mktemp -d "${TMPDIR:-/tmp}/collect-test.XXXXXX") || { echo "FATAL: mktemp failed" >&2; exit 1; }
+[ -n "$real_job" ] || { echo "FATAL: mktemp returned empty path" >&2; exit 1; }
+mkdir "$real_job/.claim" || { echo "FATAL: claim fixture failed" >&2; exit 1; }
+job=$real_job-link
+ln -s "$real_job" "$job" || { echo "FATAL: symlink fixture failed" >&2; exit 1; }
+bash "$COLLECT" "$job/" >/dev/null 2>&1
+check "symlinked directory with trailing slash exits 66" "66" "$?"
+rm -f "$job"
+rm -rf "$real_job"
+
 if [ "$failures" -gt 0 ]; then
   echo "$failures test(s) failed"
   exit 1

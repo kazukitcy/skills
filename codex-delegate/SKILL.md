@@ -28,24 +28,25 @@ and can exhaust concurrency slots.
 
 Write one self-contained task per run to a file in a run-scoped directory
 that parallel runs cannot clobber — `mktemp -d`, or a session/job work
-directory when your environment provides one. Codex shares none of the orchestrator's context. Use compact
-XML-tagged blocks and an explicit output contract.
+directory when your environment provides one. Codex shares none of the
+orchestrator's context. Rules not written in the prompt do not exist for Codex.
+Use compact XML-tagged blocks and an explicit output contract.
 
-Required blocks are `<task>` and `<output_contract>` for a read-only lookup.
-A write run requires `<task>`, `<constraints>`, `<non_goals>`, `<verification>`,
-`<output_contract>`, and `<stop_conditions>`. A design spike uses the write-run
-block set; its `<constraints>` state the report-only contract verbatim — the
-workspace is a disposable copy, nothing in it is ever merged, nothing outside
-the workspace root is touched, and git refs are off-limits: do not commit,
-stage, or branch — and its `<output_contract>` requires the report: what was
-built, what worked, and the design lessons. Required blocks are non-empty;
-other blocks apply as defined below.
+Required blocks are non-empty and depend on run shape; other blocks apply as
+defined below:
+
+- A read-only run requires `<task>` and `<output_contract>`.
+- A write run requires `<task>`, `<constraints>`, `<non_goals>`,
+  `<verification>`, `<output_contract>`, and `<stop_conditions>`.
+- A design spike requires the write-run block set. Its `<constraints>` must carry
+  the report-only contract under "Workspace isolation" verbatim, and its
+  `<output_contract>` must require the report: what was built, what worked,
+  and the design lessons.
 
 - `<task>` — done in one paragraph, the absolute repo root, and file scope.
 - `<constraints>` — restate verbatim every run rule. For write runs, require
   narrow changes. For write runs and design spikes, prohibit destructive
   cleanup and use of credentials beyond the user's explicit authorization.
-  Rules not written here do not exist for Codex.
 - `<non_goals>` — what to leave untouched.
 - `<verification>` — project validation commands, or for read-only work the
   grounding rule that every claim cites file:line evidence.
@@ -61,10 +62,9 @@ For code review, adversarial review, or a before/after review of an
 edited rule-carrying document, build the prompt from
 [references/review-prompts.md](references/review-prompts.md) instead of
 composing the blocks from scratch. This review-template rule takes
-precedence over the spike shape: a standard or adversarial review that
-must build or run code to settle its findings is the empirical review
-variant, never a design spike — the spike shape applies only to task
-work.
+precedence: a review is never a design spike. Even an empirical review that
+must build or run code uses the review templates. The spike shape applies only
+to task work.
 
 **Done when** the prompt file and required blocks are non-empty, write safety
 and reporting clauses are present, and any external content is fenced in a
@@ -74,20 +74,15 @@ non-empty `<untrusted_input>` block.
 
 Apply the first matching rule:
 
-- A report-only shape — an *empirical* review that must build or run code
-  to settle its findings (see the empirical-review variant in
-  [references/review-prompts.md](references/review-prompts.md)), or a
-  *design spike* that builds a throwaway prototype — → `-s workspace-write`
-  in a disposable worktree (see "Workspace isolation" below). Report-only
-  shapes are not write runs: their edits are scratch and never merged; the
-  report is the only deliverable.
+- A report-only shape defined under "Workspace isolation" →
+  `-s workspace-write` in its required disposable worktree.
 - Any other task that must edit files (a write run) → `-s workspace-write`.
 - Anything else (review, investigation, analysis) → `-s read-only`.
 
-Pass `-s` explicitly. Use bypass flags only inside an externally sandboxed
-environment; otherwise fail and report. Model and effort belong to project
-policy and Codex config, not the prompt; `-m`/`-e` are deliberate overrides
-limited to policy-allowed values.
+Pass `-s` explicitly. Never pass bypass flags outside an externally sandboxed
+environment. If the task appears to need one, stop and report instead of
+launching. Model and effort belong to project policy and Codex config, not the
+prompt; `-m`/`-e` are deliberate overrides limited to policy-allowed values.
 
 Two sandbox constraints the task and prompt must account for, even under
 `workspace-write`:
@@ -106,28 +101,31 @@ Two sandbox constraints the task and prompt must account for, even under
   orchestrator re-runs the full verification itself before accepting a
   write run.
 
-**Done when** the launch command contains exactly one explicit sandbox choice:
-`-s workspace-write` for a write run, empirical review, or design spike;
-`-s read-only` for every other run.
+**Done when** the launch command contains exactly one explicit `-s` choice from
+the rule list above.
 
-### Workspace isolation (optional)
+### Workspace isolation
 
 Instead of the shared working tree, a run can get a disposable git worktree
-as its workspace root (`-C <worktree>`). Choose isolation when write runs
-must proceed in parallel, when a kill/resume window must not leave partial
-edits in the shared tree, when a **review needs to execute things** —
-build, run tests, write probe tests — rather than argue from reading, or
-when a **design spike must build a throwaway prototype** to settle a
-design question by experiment. The two report-only shapes — empirical
-review and design spike — get
-`-s workspace-write` on the disposable copy plus an explicit contract: the
-copy is disposable, nothing in it is ever merged, and the report — findings
-for a review; what was built, what worked, and the design lessons for a
-spike — is the only deliverable. If spike code later proves worth keeping,
-re-issue it as a clean write run informed by the report: code written under
-a no-merge contract skipped write-run rigor and is not promoted as-is. Skip
-isolation for small serial write runs: each
-worktree starts with a cold build cache, which can dominate a short task.
+as its workspace root (`-C <worktree>`). Choose isolation when write runs must
+proceed in parallel or when a kill/resume window must not leave partial edits
+in the shared tree. It is required for the two report-only shapes: an
+**empirical review** that must execute things — build, run code or tests, write
+probe tests — to settle its findings rather than argue from reading, and a
+**design spike** that must build a throwaway prototype to settle a design
+question by experiment. These report-only shapes are not write
+runs. Both use `-s workspace-write` on the disposable copy and carry this
+contract:
+
+> This workspace is a disposable copy. Nothing in it is ever merged. Nothing
+> outside the workspace root is touched. Git refs are off-limits: do not commit,
+> stage, or branch. The report is the only deliverable: findings for a review;
+> what was built, what worked, and the design lessons for a spike.
+
+Spike code is never promoted as-is. If an idea proves worth keeping, re-issue
+it as a clean write run informed by the report; code written under the no-merge
+contract skipped write-run rigor. Skip isolation for small serial write runs:
+each worktree starts with a cold build cache, which can dominate a short task.
 
 The orchestrator owns the whole lifecycle with plain git — no wrapper. For a
 write run whose branch is an intended deliverable, create it on a branch:
@@ -156,14 +154,13 @@ scratch edits are meant to be thrown away.
 ```
 
 `<skill-base-dir>` is announced when the skill loads. Run the script with the
-Bash tool's `run_in_background: true`. The backend supervises an outer status
-recorder whose inner process publishes `codex.pid` and then `exec`s Codex. The
-authoritative outcome is the recorded `status` when present; without one, the
-backend uses its last-wait fallback unless TERM was observed, in which case it
-prints no terminal `exit:` line and exits 143.
+Bash tool's `run_in_background: true`. The authoritative outcome is the
+recorded `status` when present; without one, the backend uses its last-wait
+fallback unless TERM was observed, in which case it prints no terminal `exit:`
+line and exits 143.
 
-Every fresh launch or retry uses a directory with no backend artifacts. The
-default uses a randomly named directory under
+Every fresh launch or retry uses a fresh job directory. The default is a
+randomly named directory under
 `${CODEX_DELEGATE_JOBS:-${TMPDIR:-/tmp}/codex-delegate/jobs}`. The default is
 normally auto-pruned by macOS after about three unused days; set
 `CODEX_DELEGATE_JOBS` when durable storage is required. `-j` accepts only a new
@@ -185,12 +182,15 @@ a preflight exit is classified by the Failure taxonomy.
 
 ## 4. Verify the run started
 
-When a background launch's stdout went to a capture file, run
-`<skill-base-dir>/scripts/codex-verify-started.sh <capture-file>` instead of extracting `job-dir:` by hand. It re-prints the announcement block for recording, then runs the wait itself; exit 4 (no announcement) is the Backend-preflight-failure taxonomy class, while exits 0/1/2/3 keep their step-4 meanings.
-
 Immediately after launch, run
 `<skill-base-dir>/scripts/codex-wait-started.sh <recorded-job-dir>` in the
 foreground; its default timeout is 120 seconds.
+
+When a background launch's stdout went to a capture file, run
+`<skill-base-dir>/scripts/codex-verify-started.sh <capture-file>` instead. It
+re-prints the announcement block for recording, then runs the wait itself;
+exit 4 (no announcement, or a corrupt one) is the Backend-preflight-failure
+taxonomy class, while exits 0/1/2/3 keep their step-4 meanings.
 
 - Exit 0: record the printed session id. The run started.
 - Exit 1: pure timeout; it proves nothing about child liveness and never
@@ -249,12 +249,12 @@ evidence against its cited source — the working tree for tree paths,
 `git show REF:PATH` for git locators, the inert copies for a neutralized
 document-edit review — plus every Major-or-equivalent finding whether acted
 on or not. For a spike, judge the report against its design question and
-spot-check its load-bearing claims in the worktree before removing it; the
-scratch diff is never validated for acceptance, and for a spike "fails
-validation" below means failing these report checks — a prototype that
-fails project checks while answering the design question is a reportable
-result, not a rejection. A kept idea re-enters as a clean write run (see
-"Workspace isolation").
+spot-check its load-bearing claims in the worktree before removing it. The
+scratch diff is never validated for acceptance; for a spike, "fails
+validation" below means failing these report checks. A prototype that fails
+project checks while answering the design question is a reportable result,
+not a rejection. A kept idea re-enters as a clean write run (see "Workspace
+isolation").
 
 A result that violates its output contract, fails validation, or fails review
 is rejected at acceptance even when the process exited 0. Apply only that class's

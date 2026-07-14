@@ -8,6 +8,7 @@
 set -u
 
 usage() { echo "usage: $0 [-f FOLLOWUP_FILE|-] [--] JOB_DIR" >&2; exit 64; }
+die64() { echo "error: $1" >&2; exit 64; }
 die66() { echo "error: $1" >&2; exit 66; }
 
 absolute_path() {
@@ -23,10 +24,12 @@ has_line_delimiter() {
 }
 
 followup_src=""
+followup_set=0
 while getopts "f:" opt; do
-  case "$opt" in f) followup_src=$OPTARG ;; *) usage ;; esac
+  case "$opt" in f) followup_src=$OPTARG; followup_set=1 ;; *) usage ;; esac
 done
 shift $((OPTIND - 1))
+[ "$followup_set" -eq 0 ] || [ -n "$followup_src" ] || die64 "-f must not be empty"
 [ "$#" -eq 1 ] || usage
 [ -n "$1" ] && has_line_delimiter "$1" && usage
 jobdir=$(absolute_path "$1")
@@ -34,6 +37,17 @@ if [ -n "$followup_src" ] && [ "$followup_src" != "-" ]; then
   followup_src=$(absolute_path "$followup_src")
 fi
 has_line_delimiter "$jobdir" && usage
+while [ "${#jobdir}" -gt 1 ]; do
+  case "$jobdir" in
+    */.) jobdir=${jobdir%.} ;;
+    */) jobdir=${jobdir%/} ;;
+    *) break ;;
+  esac
+done
+if [ -n "$followup_src" ] && [ "$followup_src" != "-" ]; then
+  [ ! -L "$followup_src" ] && [ -f "$followup_src" ] && [ -r "$followup_src" ] || \
+    die64 "follow-up file must be an existing, readable, regular non-symlink file: $followup_src"
+fi
 
 [ -d "$jobdir" ] && [ ! -L "$jobdir" ] || die66 "job directory not found: $jobdir"
 [ ! -L "$jobdir/.claim" ] && [ -d "$jobdir/.claim" ] || die66 "job directory has no valid .claim lineage"

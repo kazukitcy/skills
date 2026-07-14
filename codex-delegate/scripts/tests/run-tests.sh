@@ -225,6 +225,15 @@ new_workspace
 run_capture_deadline bash "$WAIT" "$workspace/missing"
 assert "8 nonexistent job directory exits 2" '[ "$rc" -eq 2 ]'
 
+new_workspace; real_job="$workspace/real-job"; job="$workspace/job-link"; mkdir "$real_job"; ln -s "$real_job" "$job"
+run_capture_deadline bash "$WAIT" "$job" 1
+wait_symlink_rc=$rc
+run_capture_deadline bash "$WAIT" "$job/" 1
+wait_symlink_slash_rc=$rc
+run_capture_deadline bash "$WAIT" "$job/." 1
+wait_symlink_dot_rc=$rc
+assert "97 symlinked job directory exits 2 with lexical suffixes" '[ "$wait_symlink_rc" -eq 2 ] && [ "$wait_symlink_slash_rc" -eq 2 ] && [ "$wait_symlink_dot_rc" -eq 2 ]'
+
 new_workspace; job="$workspace/job"; mkdir "$job"; printf '%s\n' "$$" > "$job/codex.pid"
 CODEX_SHIM_MODE=complete codex exec --json -o "$job/last-message.md" - > "$job/events.jsonl" 2>/dev/null
 run_capture bash "$WAIT" "$job" 2
@@ -247,9 +256,45 @@ assert "11 live no-session shim times out with exit 1" '[ "$rc" -eq 1 ]'
 # M3: codex-exec-backend.sh
 EXEC="$BACKEND_DIR/codex-exec-backend.sh"
 
+new_workspace; make_prompt; run_exec -s '' "$prompt"
+assert "98 explicitly empty -s exits 64" '[ "$rc" -eq 64 ] && [ ! -s "$stdout" ] && grep -Fq -- "-s must not be empty" "$stderr"'
+
+new_workspace; make_prompt; run_exec -C '' "$prompt"
+assert "99 explicitly empty -C exits 64" '[ "$rc" -eq 64 ] && [ ! -s "$stdout" ] && grep -Fq -- "-C must not be empty" "$stderr"'
+
+new_workspace; make_prompt; run_exec -m '' "$prompt"
+assert "100 explicitly empty -m exits 64" '[ "$rc" -eq 64 ] && [ ! -s "$stdout" ] && grep -Fq -- "-m must not be empty" "$stderr"'
+
+new_workspace; make_prompt; run_exec -e '' "$prompt"
+assert "101 explicitly empty -e exits 64" '[ "$rc" -eq 64 ] && [ ! -s "$stdout" ] && grep -Fq -- "-e must not be empty" "$stderr"'
+
+new_workspace; make_prompt; run_exec -j '' "$prompt"
+assert "102 explicitly empty -j exits 64" '[ "$rc" -eq 64 ] && [ ! -s "$stdout" ] && grep -Fq -- "-j must not be empty" "$stderr"'
+
+new_workspace; jobs="$workspace/missing-prompt-jobs"; mkdir "$jobs"; export CODEX_DELEGATE_JOBS="$jobs"; missing_prompt="$workspace/missing-prompt"; run_exec "$missing_prompt"
+assert "103 missing prompt file exits 64 without allocating a job" '[ "$rc" -eq 64 ] && [ ! -s "$stdout" ] && grep -Fq "prompt file must be an existing, readable, regular non-symlink file" "$stderr" && [ -z "$(find "$jobs" -mindepth 1 -print -quit)" ]'
+
+new_workspace; job="$workspace/missing-job"; missing_prompt="$workspace/missing-prompt"; run_exec -j "$job" "$missing_prompt"
+assert "117 missing prompt does not create a nonexistent supplied job" '[ "$rc" -eq 64 ] && [ ! -s "$stdout" ] && [ ! -e "$job" ] && [ ! -e "$CODEX_SHIM_MARKERS/shim-invoked" ]'
+
+new_workspace; job="$workspace/job"; mkdir "$job"; missing_prompt="$workspace/missing-prompt"; run_exec -j "$job" "$missing_prompt"
+assert "113 missing prompt is rejected before supplied-job side effects" '[ "$rc" -eq 64 ] && [ ! -s "$stdout" ] && [ -z "$(find "$job" -mindepth 1 -print -quit)" ] && [ ! -e "$CODEX_SHIM_MARKERS/shim-invoked" ]'
+
+new_workspace; prompt_dir="$workspace/prompt-dir"; mkdir "$prompt_dir"; run_exec "$prompt_dir"
+assert "104 prompt directory exits 64" '[ "$rc" -eq 64 ] && [ ! -s "$stdout" ] && grep -Fq "prompt file must be an existing, readable, regular non-symlink file" "$stderr"'
+
+new_workspace; make_prompt; prompt_link="$workspace/prompt-link"; ln -s "$prompt" "$prompt_link"; run_exec "$prompt_link"
+assert "105 symlinked prompt file exits 64" '[ "$rc" -eq 64 ] && [ ! -s "$stdout" ] && grep -Fq "prompt file must be an existing, readable, regular non-symlink file" "$stderr"'
+
+new_workspace; unreadable_prompt="$workspace/unreadable-prompt"; printf '%s\n' prompt > "$unreadable_prompt"; chmod 000 "$unreadable_prompt"; run_exec "$unreadable_prompt"; unreadable_prompt_rc=$rc; chmod 600 "$unreadable_prompt"
+assert "106 unreadable prompt file exits 64" '[ "$unreadable_prompt_rc" -eq 64 ] && [ ! -s "$stdout" ] && grep -Fq "prompt file must be an existing, readable, regular non-symlink file" "$stderr"'
+
 new_workspace; make_prompt; job="$workspace/job"; mkdir "$job"; printf x > "$job/existing"
 run_exec -j "$job" "$prompt"
 assert "12 non-empty supplied job is rejected before shim" '[ "$rc" -eq 66 ] && [ ! -e "$CODEX_SHIM_MARKERS/shim-invoked" ]'
+
+new_workspace; make_prompt; real_job="$workspace/real-job"; mkdir "$real_job"; job="$workspace/job-link"; ln -s "$real_job" "$job"; run_exec -j "$job/" "$prompt"
+assert "116 trailing-slash symlinked supplied job is rejected before side effects" '[ "$rc" -eq 66 ] && [ ! -s "$stdout" ] && grep -Fxq "error: supplied job path is not a directory" "$stderr" && [ ! -e "$CODEX_SHIM_MARKERS/shim-invoked" ] && [ -z "$(find "$real_job" -mindepth 1 -print -quit)" ]'
 
 new_workspace; make_prompt; job="$workspace/unreadable"; mkdir "$job"; printf x > "$job/existing"; chmod 300 "$job"; run_exec -j "$job" "$prompt"; unreadable_rc=$rc; chmod 700 "$job"
 assert "87 unreadable non-empty supplied job fails closed before shim" '[ "$unreadable_rc" -eq 66 ] && [ ! -e "$CODEX_SHIM_MARKERS/shim-invoked" ]'
@@ -385,6 +430,24 @@ assert "86 jobs base honors raw TMPDIR validation and override precedence" '[ "$
 # M4: codex-resume-backend.sh
 RESUME="$BACKEND_DIR/codex-resume-backend.sh"
 
+new_workspace; real_job="$workspace/real-job"; mkdir -p "$real_job/.claim"; printf '%s\n' '{"type":"thread.started","thread_id":"shim-thread"}' > "$real_job/events.jsonl"; job="$workspace/job-link"; ln -s "$real_job" "$job"; run_resume "$job/"
+assert "114 symlinked resume job with trailing slash exits 66" '[ "$rc" -eq 66 ] && [ ! -s "$stdout" ] && [ ! -e "$CODEX_SHIM_MARKERS/shim-invoked" ]'
+
+new_workspace; claimed_resume_job; run_resume -f '' "$job"
+assert "107 explicitly empty -f exits 64" '[ "$rc" -eq 64 ] && [ ! -s "$stdout" ] && grep -Fq -- "-f must not be empty" "$stderr"'
+
+new_workspace; claimed_resume_job; missing_followup="$workspace/missing-followup"; run_resume -f "$missing_followup" "$job"
+assert "108 missing follow-up file exits 64" '[ "$rc" -eq 64 ] && [ ! -s "$stdout" ] && grep -Fq "follow-up file must be an existing, readable, regular non-symlink file" "$stderr"'
+
+new_workspace; claimed_resume_job; followup_dir="$workspace/followup-dir"; mkdir "$followup_dir"; run_resume -f "$followup_dir" "$job"
+assert "109 follow-up directory exits 64" '[ "$rc" -eq 64 ] && [ ! -s "$stdout" ] && grep -Fq "follow-up file must be an existing, readable, regular non-symlink file" "$stderr"'
+
+new_workspace; claimed_resume_job; followup="$workspace/followup"; printf '%s\n' continue > "$followup"; followup_link="$workspace/followup-link"; ln -s "$followup" "$followup_link"; run_resume -f "$followup_link" "$job"
+assert "110 symlinked follow-up file exits 64" '[ "$rc" -eq 64 ] && [ ! -s "$stdout" ] && grep -Fq "follow-up file must be an existing, readable, regular non-symlink file" "$stderr"'
+
+new_workspace; claimed_resume_job; unreadable_followup="$workspace/unreadable-followup"; printf '%s\n' continue > "$unreadable_followup"; chmod 000 "$unreadable_followup"; run_resume -f "$unreadable_followup" "$job"; unreadable_followup_rc=$rc; chmod 600 "$unreadable_followup"
+assert "111 unreadable follow-up file exits 64" '[ "$unreadable_followup_rc" -eq 64 ] && [ ! -s "$stdout" ] && grep -Fq "follow-up file must be an existing, readable, regular non-symlink file" "$stderr"'
+
 new_workspace; claimed_resume_job; mkdir "$job/resume.lock"; printf '%s\n' "$$" > "$job/resume.lock/pid"; run_resume "$job"
 assert "26 live resume lock refuses without removal" '[ "$rc" -eq 65 ] && grep -q "refused: lock-held" "$stdout" && [ -d "$job/resume.lock" ]'
 
@@ -488,8 +551,8 @@ assert "61 canonical directory is not completion evidence" '[ "$rc" -eq 65 ] && 
 new_workspace; run_resume; usage_rc=$rc; usage_empty=0; [ ! -s "$stdout" ] && usage_empty=1; claimed_resume_job; rm "$job/events.jsonl"; run_resume "$job"; missing_rc=$rc
 assert "63 resume usage and missing-events diagnostics are stderr-only" '[ "$usage_rc" -eq 64 ] && [ "$usage_empty" -eq 1 ] && [ "$missing_rc" -eq 66 ] && [ ! -s "$stdout" ] && grep -q events.jsonl "$stderr"'
 
-new_workspace; claimed_resume_job; run_resume -f "$workspace/missing-followup" "$job"
-assert "64 followup staging failure consumes empty reservation" '[ "$rc" -eq 66 ] && [ ! -s "$stdout" ] && [ -f "$job/events-resume-1.jsonl" ] && [ ! -s "$job/events-resume-1.jsonl" ]'
+new_workspace; claimed_resume_job; export CODEX_MKDIR_LOG="$workspace/mkdir.log"; run_resume -f "$workspace/missing-followup" "$job"
+assert "64 missing followup is rejected before resume side effects" '[ "$rc" -eq 64 ] && [ ! -s "$stdout" ] && [ ! -e "$job/resume.lock" ] && { [ ! -e "$CODEX_MKDIR_LOG" ] || ! grep -q resume.lock "$CODEX_MKDIR_LOG"; } && [ ! -e "$job/grace-began" ] && [ ! -e "$job/events-resume-1.jsonl" ] && [ ! -e "$CODEX_SHIM_MARKERS/shim-invoked" ]'
 
 new_workspace; claimed_resume_job; sleep 30 & protected=$!; track_pid "$protected"; printf '%s\n' "$protected" > "$job/codex.pid"; export CODEX_PS_MODE=success CODEX_PS_COMM=codex; run_resume "$job"; kill "$protected" 2>/dev/null; wait "$protected" 2>/dev/null; expected=$(printf 'job-dir:      %s\nrefused: live-process' "$job")
 assert "65 refusal stdout is exactly job-dir plus reason" '[ "$rc" -eq 65 ] && [ "$(cat "$stdout")" = "$expected" ]'
@@ -589,6 +652,21 @@ verify_missing_rc=$rc; verify_missing_stdout_size=$(wc -c < "$stdout"); verify_m
 run_capture bash "$VERIFY" "$workspace/capture" 01
 verify_bad_rc=$rc; verify_bad_stdout_size=$(wc -c < "$stdout"); verify_bad_usage=0; grep -q '^usage: codex-verify-started.sh ' "$stderr" && verify_bad_usage=1
 assert "96 verify-started rejects missing arguments and bad timeout" '[ "$verify_missing_rc" -eq 2 ] && [ "$verify_missing_stdout_size" -eq 0 ] && [ "$verify_missing_usage" -eq 1 ] && [ "$verify_bad_rc" -eq 2 ] && [ "$verify_bad_stdout_size" -eq 0 ] && [ "$verify_bad_usage" -eq 1 ]'
+
+verify_timeout_boundaries_ok=1
+for verify_bad_timeout in nope 0 00 86401 100000; do
+  new_workspace; capture="$workspace/backend.stdout"; : > "$capture"
+  run_capture bash "$VERIFY" "$capture" "$verify_bad_timeout"
+  [ "$rc" -eq 2 ] || verify_timeout_boundaries_ok=0
+done
+new_workspace; capture="$workspace/backend.stdout"; : > "$capture"
+CODEX_DELEGATE_TEST_ANNOUNCEMENT_POLL_LIMIT=1 run_capture bash "$VERIFY" "$capture" 86400
+verify_max_timeout_rc=$rc
+assert "115 verify-started enforces timeout boundaries" '[ "$verify_timeout_boundaries_ok" -eq 1 ] && [ "$verify_max_timeout_rc" -eq 4 ]'
+
+new_workspace; capture="$workspace/backend.stdout"; printf '%s\n' 'job-dir:      relative/job' > "$capture"
+CODEX_DELEGATE_TEST_ANNOUNCEMENT_POLL_LIMIT=1 run_capture bash "$VERIFY" "$capture" 1
+assert "112 verify-started rejects a non-absolute announced job directory" '[ "$rc" -eq 4 ] && [ ! -s "$stdout" ] && grep -Fq "corrupt or wrong capture file: $capture announced a non-absolute job-dir" "$stderr"'
 
 if [ "$failures" -ne 0 ]; then
   printf '%s tests, %s failures\n' "$tests" "$failures" >&2

@@ -15,14 +15,26 @@ usage() {
 [ "$#" -ge 1 ] && [ "$#" -le 2 ] || usage
 job_dir=$1
 timeout=${2:-120}
-[ -d "$job_dir" ] || usage
+while [ "${#job_dir}" -gt 1 ]; do
+  case "$job_dir" in
+    */.) job_dir=${job_dir%.} ;;
+    */) job_dir=${job_dir%/} ;;
+    *) break ;;
+  esac
+done
+[ -d "$job_dir" ] && [ ! -L "$job_dir" ] || usage
 
+# Require decimal digits only.
 case "$timeout" in
   *[!0-9]*|'') usage ;;
 esac
+# Require a positive value with no leading zero.
 case "$timeout" in
-  0|0*|??????*) usage ;;
+  0|0*) usage ;;
 esac
+# Bound the input to at most five characters before numeric comparison.
+[ "${#timeout}" -le 5 ] || usage
+# Cap the accepted timeout at one day.
 [ "$timeout" -le 86400 ] || usage
 
 events="$job_dir/events.jsonl"

@@ -28,6 +28,13 @@ die66() { echo "error: $1" >&2; exit 66; }
 [ "$#" -eq 1 ] || usage
 case "$1" in -*) usage ;; esac
 jobdir=$1
+while [ "${#jobdir}" -gt 1 ]; do
+  case "$jobdir" in
+    */.) jobdir=${jobdir%.} ;;
+    */) jobdir=${jobdir%/} ;;
+    *) break ;;
+  esac
+done
 [ -d "$jobdir" ] && [ ! -L "$jobdir" ] || die66 "job directory not found: $jobdir"
 [ ! -L "$jobdir/.claim" ] && [ -d "$jobdir/.claim" ] || die66 "job directory has no valid .claim lineage"
 

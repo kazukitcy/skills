@@ -52,18 +52,28 @@ workdir=$PWD
 model=""
 effort=""
 jobdir=""
+sandbox_set=0
+workdir_set=0
+model_set=0
+effort_set=0
+jobdir_set=0
 
 while getopts "s:C:m:e:j:" opt; do
   case "$opt" in
-    s) sandbox=$OPTARG ;;
-    C) workdir=$OPTARG ;;
-    m) model=$OPTARG ;;
-    e) effort=$OPTARG ;;
-    j) jobdir=$OPTARG ;;
+    s) sandbox=$OPTARG; sandbox_set=1 ;;
+    C) workdir=$OPTARG; workdir_set=1 ;;
+    m) model=$OPTARG; model_set=1 ;;
+    e) effort=$OPTARG; effort_set=1 ;;
+    j) jobdir=$OPTARG; jobdir_set=1 ;;
     *) usage ;;
   esac
 done
 shift $((OPTIND - 1))
+[ "$sandbox_set" -eq 0 ] || [ -n "$sandbox" ] || die64 "-s must not be empty"
+[ "$workdir_set" -eq 0 ] || [ -n "$workdir" ] || die64 "-C must not be empty"
+[ "$model_set" -eq 0 ] || [ -n "$model" ] || die64 "-m must not be empty"
+[ "$effort_set" -eq 0 ] || [ -n "$effort" ] || die64 "-e must not be empty"
+[ "$jobdir_set" -eq 0 ] || [ -n "$jobdir" ] || die64 "-j must not be empty"
 [ "$#" -eq 1 ] || usage
 prompt_src=$1
 
@@ -78,6 +88,17 @@ workdir=$(absolute_path "$workdir")
 [ -d "$workdir" ] || die64 "working directory not found: $workdir"
 if [ "$prompt_src" != "-" ]; then prompt_src=$(absolute_path "$prompt_src"); fi
 if [ -n "$jobdir" ]; then jobdir=$(absolute_path "$jobdir"); fi
+while [ "${#jobdir}" -gt 1 ]; do
+  case "$jobdir" in
+    */.) jobdir=${jobdir%.} ;;
+    */) jobdir=${jobdir%/} ;;
+    *) break ;;
+  esac
+done
+if [ "$prompt_src" != "-" ]; then
+  [ ! -L "$prompt_src" ] && [ -f "$prompt_src" ] && [ -r "$prompt_src" ] || \
+    die64 "prompt file must be an existing, readable, regular non-symlink file: $prompt_src"
+fi
 
 codex_arg=$(command -v codex 2>/dev/null) || die66 "codex is not resolvable on PATH"
 

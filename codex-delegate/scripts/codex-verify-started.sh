@@ -17,12 +17,17 @@ usage() {
 capture_file=$1
 timeout=${2:-120}
 
+# Require decimal digits only.
 case "$timeout" in
   *[!0-9]*|'') usage ;;
 esac
+# Require a positive value with no leading zero.
 case "$timeout" in
-  0|0*|??????*) usage ;;
+  0|0*) usage ;;
 esac
+# Bound the input to at most five characters before numeric comparison.
+[ "${#timeout}" -le 5 ] || usage
+# Cap the accepted timeout at one day.
 [ "$timeout" -le 86400 ] || usage
 
 poll_limit=${CODEX_DELEGATE_TEST_ANNOUNCEMENT_POLL_LIMIT:-75}
@@ -47,6 +52,13 @@ if [ -z "$announcement_line" ]; then
 fi
 
 job_dir=$(printf '%s\n' "$announcement_line" | sed 's/^job-dir:[[:space:]]*//')
+case "$job_dir" in
+  /*) ;;
+  *)
+    echo "corrupt or wrong capture file: $capture_file announced a non-absolute job-dir" >&2
+    exit 4
+    ;;
+esac
 grep -E '^(job-dir:|last-message:|events:|stderr:|status:)' "$capture_file"
 
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
