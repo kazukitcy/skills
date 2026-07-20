@@ -59,7 +59,7 @@ case "$job_dir" in
     exit 4
     ;;
 esac
-grep -E '^(job-dir:|last-message:|events:|stderr:|status:)' "$capture_file"
+grep -E '^(job-dir:|workdir:|last-message:|events:|stderr:|status:)' "$capture_file"
 
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
 exec bash "$SCRIPT_DIR/codex-wait-started.sh" "$job_dir" "$timeout"

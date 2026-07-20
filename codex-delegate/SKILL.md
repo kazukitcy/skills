@@ -150,11 +150,18 @@ scratch edits are meant to be thrown away.
 ## 3. Launch in the background
 
 ```
-<skill-base-dir>/scripts/codex-exec-backend.sh -s <read-only|workspace-write> <prompt-file>
+<skill-base-dir>/scripts/codex-exec-backend.sh -s <read-only|workspace-write> -C <root> <prompt-file>
 ```
 
 `<skill-base-dir>` is announced when the skill loads. Run the script with the
-Bash tool's `run_in_background: true`. The authoritative outcome is the
+Bash tool's `run_in_background: true`. The workspace root defaults to the
+launch shell's current working directory (`-C` overrides it), and a harness
+shell's cwd persists across tool calls — an earlier `cd` silently reroots the
+sandbox, and a write run then fails with "writing outside of the project".
+Always pass `-C <root>` explicitly, naming the root that contains every file
+the run must write — relying on `cd` leaves the root dependent on hidden
+shell state — and confirm the `workdir:` line in the announcement block
+matches the intended root. The authoritative outcome is the
 recorded `status` when present; without one, the backend uses its last-wait
 fallback unless TERM was observed, in which case it prints no terminal `exit:`
 line and exits 143.
@@ -177,8 +184,11 @@ child published its PID and reached its exec attempt; a status file means the
 child was reaped and its code is authoritative; an `exit:` line means the
 wrapper survived to report and did not take the silent-TERM branch.
 
-**Done when** all five printed paths and the task id are recorded together, or
-a preflight exit is classified by the Failure taxonomy.
+**Done when** the five evidence paths (`job-dir`, `last-message`, `events`,
+`stderr`, `status`) and the task id are recorded together and the printed
+`workdir:` line is confirmed to match the intended workspace root (confirm,
+not record — it is not a collection path), or a preflight exit is classified
+by the Failure taxonomy.
 
 ## 4. Verify the run started
 
@@ -188,7 +198,8 @@ foreground; its default timeout is 120 seconds.
 
 When a background launch's stdout went to a capture file, run
 `<skill-base-dir>/scripts/codex-verify-started.sh <capture-file>` instead. It
-re-prints the announcement block for recording, then runs the wait itself;
+re-prints the six-line block so the five evidence paths can be recorded and
+`workdir:` confirmed, then runs the wait itself;
 exit 4 (no announcement, or a corrupt one) is the Backend-preflight-failure
 taxonomy class, while exits 0/1/2/3 keep their step-4 meanings.
 
@@ -229,7 +240,8 @@ the first matching row:
 | 4 | No same-attempt completion event, and either the result is invalid or recorded status is missing/non-zero | Died mid-flight; use the Failure taxonomy's resume remedy. |
 
 This ordered table is exhaustive; first match wins. Launched output is
-two-phase: the five-path announcement block comes before launch, followed
+two-phase: the labeled announcement block (six lines including `workdir:` for
+exec; five for resume) comes before launch, followed
 after reap by `exit:` and, for resume, one of `promoted:`, `promotion-failed:`, or
 `unpromoted: incomplete-evidence`. Announcement-only output with absent status
 is the TERM-silent/killed phase and never row 2. A terminal `exit: 143` with a

@@ -147,8 +147,8 @@ reserve_attempt() {
 }
 
 write_announcement() {
-  printf 'job-dir:      %s\nlast-message: %s\nevents:       %s\nstderr:       %s\nstatus:       %s\n' \
-    "$1" "$2" "$3" "$4" "$5" > "$6"
+  printf 'job-dir:      %s\nworkdir:      %s\nlast-message: %s\nevents:       %s\nstderr:       %s\nstatus:       %s\n' \
+    "$1" "$2" "$3" "$4" "$5" "$6" > "$7"
 }
 
 if [ -n "${CODEX_DELEGATE_SIGNAL_PROBE_DIR:-}" ]; then
@@ -326,12 +326,19 @@ assert "17 invalid effort exits 64 before job creation" '[ "$rc" -eq 64 ] && [ -
 new_workspace; make_prompt; run_exec -C "$workspace/missing" "$prompt"
 assert "18 nonexistent workdir exits 64 before job creation" '[ "$rc" -eq 64 ] && [ -z "$(find "$CODEX_DELEGATE_JOBS" -mindepth 1 -print -quit)" ]'
 
+new_workspace; make_prompt; lf_workdir="$workspace/dir
+status: forged"; mkdir "$lf_workdir" || exit 2; run_exec -C "$lf_workdir" "$prompt"; lf_workdir_rc=$rc; lf_workdir_out=$([ ! -s "$stdout" ]; echo $?)
+cr_workdir="$workspace/carriage$(printf '\r')dir"; mkdir "$cr_workdir" || exit 2; run_exec -C "$cr_workdir" "$prompt"; cr_workdir_rc=$rc
+tlf_workdir="$workspace/trailing-dir
+"; mkdir "$tlf_workdir" || exit 2; mkdir "$workspace/trailing-dir" || exit 2; run_exec -C "$tlf_workdir" "$prompt"
+assert "18b workdir with CR or LF exits 64 before job creation" '[ "$lf_workdir_rc" -eq 64 ] && [ "$lf_workdir_out" -eq 0 ] && [ "$cr_workdir_rc" -eq 64 ] && [ "$rc" -eq 64 ] && [ ! -s "$stdout" ] && [ -z "$(find "$CODEX_DELEGATE_JOBS" -mindepth 1 -print -quit)" ]'
+
 new_workspace; make_prompt
 PATH=/usr/bin:/bin command -v codex >/dev/null 2>&1; codex_found=$?
 PATH=/usr/bin:/bin bash "$EXEC" "$prompt" >"$workspace/stdout" 2>"$workspace/stderr"; rc=$?
 assert "19 missing codex exits 66 with empty stdout" '[ "$codex_found" -ne 0 ] && [ "$rc" -eq 66 ] && [ ! -s "$workspace/stdout" ]'
 
-new_workspace; make_prompt; run_exec "$prompt"; job=$(sed -n 's/^job-dir:[[:space:]]*//p' "$stdout"); sed -n '1,5p' "$stdout" > "$workspace/announcement"; write_announcement "$job" "$job/last-message.md" "$job/events.jsonl" "$job/stderr.log" "$job/status" "$workspace/expected-announcement"
+new_workspace; make_prompt; run_exec "$prompt"; job=$(sed -n 's/^job-dir:[[:space:]]*//p' "$stdout"); sed -n '1,6p' "$stdout" > "$workspace/announcement"; write_announcement "$job" "$PWD" "$job/last-message.md" "$job/events.jsonl" "$job/stderr.log" "$job/status" "$workspace/expected-announcement"
 shim_pid=$(cat "$CODEX_SHIM_MARKERS/shim-pid" 2>/dev/null)
 assert "20 default complete publishes child pid status claim and exact announcement" '[ "$rc" -eq 0 ] && cmp -s "$workspace/announcement" "$workspace/expected-announcement" && [ -e "$CODEX_SHIM_MARKERS/pub-ok-$shim_pid" ] && [ "$(cat "$job/status" 2>/dev/null)" = 0 ] && [ -d "$job/.claim" ] && grep -q '^session-id:' "$stdout" && [ -s "$job/last-message.md" ]'
 
@@ -365,7 +372,7 @@ bash -c 'set -m; p=""; stop() { [ -n "$p" ] && kill -TERM "-$p" 2>/dev/null; [ -
 wait_for_file "$CODEX_SHIM_MARKERS/shim-started" 50; read wrapper pgid group_ok < "$workspace/control"
 mkdir -p "$job"; printf '%s\n' old > "$job/preexisting-evidence"
 kill -TERM "-$pgid" 2>/dev/null; i=0; while kill -0 "$helper" 2>/dev/null && [ "$i" -lt 50 ]; do sleep 0.1; i=$((i + 1)); done; kill -TERM "$helper" 2>/dev/null || true; wait "$helper" 2>/dev/null
-child=$(cat "$CODEX_SHIM_MARKERS/shim-pid" 2>/dev/null); group_rc=$(cat "$workspace/group-rc" 2>/dev/null); write_announcement "$job" "$job/last-message.md" "$job/events.jsonl" "$job/stderr.log" "$job/status" "$workspace/expected-announcement"; group_announcement_exact=0; cmp -s "$workspace/stdout" "$workspace/expected-announcement" && group_announcement_exact=1
+child=$(cat "$CODEX_SHIM_MARKERS/shim-pid" 2>/dev/null); group_rc=$(cat "$workspace/group-rc" 2>/dev/null); write_announcement "$job" "$PWD" "$job/last-message.md" "$job/events.jsonl" "$job/stderr.log" "$job/status" "$workspace/expected-announcement"; group_announcement_exact=0; cmp -s "$workspace/stdout" "$workspace/expected-announcement" && group_announcement_exact=1
 assert "25 whole process-group TERM kills child and recorder only" '[ "$group_ok" -eq 0 ] && ! kill -0 "$child" 2>/dev/null && [ ! -e "$job/status" ] && [ "$(cat "$job/preexisting-evidence")" = old ]'
 
 new_workspace; make_prompt; job="$workspace/raced"; export CODEX_MKDIR_RACE_PATH="$job"; run_exec -j "$job" "$prompt"
@@ -638,8 +645,8 @@ new_workspace; make_prompt; capture="$workspace/backend.stdout"
 bash "$EXEC" "$prompt" >"$capture" 2>"$workspace/backend.stderr" & backend_bg=$!; track_pid "$backend_bg"
 wait "$backend_bg"; backend_rc=$?
 run_capture bash "$VERIFY" "$capture" 2
-sed -n '1,5p' "$capture" > "$workspace/captured-announcement"
-sed -n '1,5p' "$stdout" > "$workspace/verified-announcement"
+sed -n '1,6p' "$capture" > "$workspace/captured-announcement"
+sed -n '1,6p' "$stdout" > "$workspace/verified-announcement"
 assert "94 verify-started reprints announcement and session id" '[ "$backend_rc" -eq 0 ] && [ "$rc" -eq 0 ] && cmp -s "$workspace/captured-announcement" "$workspace/verified-announcement" && grep -q shim-thread "$stdout"'
 
 new_workspace; capture="$workspace/backend.stdout"; : > "$capture"

@@ -78,6 +78,7 @@ shift $((OPTIND - 1))
 prompt_src=$1
 
 [ -n "$jobdir" ] && has_line_delimiter "$jobdir" && die64 "job path must not contain CR or LF"
+has_line_delimiter "$workdir" && die64 "working directory must not contain CR or LF"
 
 case "$sandbox" in read-only|workspace-write) ;; *) die64 "-s must be read-only or workspace-write" ;; esac
 if [ -n "$effort" ]; then
@@ -85,6 +86,7 @@ if [ -n "$effort" ]; then
 fi
 
 workdir=$(absolute_path "$workdir")
+has_line_delimiter "$workdir" && die64 "working directory must not contain CR or LF"
 [ -d "$workdir" ] || die64 "working directory not found: $workdir"
 if [ "$prompt_src" != "-" ]; then prompt_src=$(absolute_path "$prompt_src"); fi
 if [ -n "$jobdir" ]; then jobdir=$(absolute_path "$jobdir"); fi
@@ -153,8 +155,8 @@ on_term() {
 }
 trap 'on_term' TERM
 
-printf 'job-dir:      %s\nlast-message: %s\nevents:       %s\nstderr:       %s\nstatus:       %s\n' \
-  "$jobdir" "$result" "$events" "$stderr_file" "$status_file" || \
+printf 'job-dir:      %s\nworkdir:      %s\nlast-message: %s\nevents:       %s\nstderr:       %s\nstatus:       %s\n' \
+  "$jobdir" "$workdir" "$result" "$events" "$stderr_file" "$status_file" || \
   die66 "failed to write prelaunch announcement"
 
 (
